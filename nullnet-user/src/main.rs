@@ -1,5 +1,7 @@
+mod ebpf;
+
 use std::sync::Arc;
-use crate::ebpf::ingress::load_ingress;
+use ebpf::ingress::load_ingress;
 
 fn main() {
     start();
