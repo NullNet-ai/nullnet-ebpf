@@ -13,7 +13,7 @@ use aya::{
     util::KernelVersion,
 };
 use log::error;
-use oryx_common::{MAX_RULES_PORT, RawData, protocols::Protocol};
+use nullnet_common::{MAX_RULES_PORT, RawData, protocols::Protocol};
 
 use crate::{
     event::Event,
@@ -67,7 +67,7 @@ pub fn load_egress(
                     &(is_pid_helper_available() as u8),
                     true,
                 )
-                .load(include_bytes_aligned!(env!("ORYX_BIN_PATH")))
+                .load(include_bytes_aligned!(env!("NULLNET_BIN_PATH")))
             {
                 Ok(v) => v,
                 Err(e) => {
@@ -90,7 +90,7 @@ pub fn load_egress(
                     &(is_pid_helper_available() as u8),
                     true,
                 )
-                .load(include_bytes_aligned!(env!("ORYX_BIN_PATH")))
+                .load(include_bytes_aligned!(env!("NULLNET_BIN_PATH")))
             {
                 Ok(v) => v,
                 Err(e) => {
@@ -107,7 +107,7 @@ pub fn load_egress(
 
             let _ = tc::qdisc_add_clsact(&iface);
             let program: &mut SchedClassifier =
-                bpf.program_mut("oryx").unwrap().try_into().unwrap();
+                bpf.program_mut("nullnet").unwrap().try_into().unwrap();
 
             if let Err(e) = program.load() {
                 error!("Fail to load the egress eBPF program to the kernel. {e}");

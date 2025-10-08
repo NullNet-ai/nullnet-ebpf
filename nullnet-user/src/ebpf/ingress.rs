@@ -12,7 +12,7 @@ use aya::{
     programs::{SchedClassifier, TcAttachType, tc},
 };
 use log::error;
-use oryx_common::{MAX_RULES_PORT, RawData, protocols::Protocol};
+use nullnet_common::{MAX_RULES_PORT, RawData, protocols::Protocol};
 
 use crate::{
     event::Event,
@@ -34,7 +34,7 @@ pub fn load_ingress(
 ) {
     thread::spawn({
         let iface = iface.to_owned();
-        let notification_sender = notification_sender.clone();
+        // let notification_sender = notification_sender.clone();
 
         move || {
             let rlim = libc::rlimit {
@@ -49,7 +49,7 @@ pub fn load_ingress(
             #[cfg(debug_assertions)]
             let mut bpf = match EbpfLoader::new()
                 .set_global("TRAFFIC_DIRECTION", &traffic_direction, true)
-                .load(include_bytes_aligned!(env!("ORYX_BIN_PATH")))
+                .load(include_bytes_aligned!(env!("NULLNET_BIN_PATH")))
             {
                 Ok(v) => v,
                 Err(e) => {
@@ -67,7 +67,7 @@ pub fn load_ingress(
             #[cfg(not(debug_assertions))]
             let mut bpf = match EbpfLoader::new()
                 .set_global("TRAFFIC_DIRECTION", &traffic_direction, true)
-                .load(include_bytes_aligned!(env!("ORYX_BIN_PATH")))
+                .load(include_bytes_aligned!(env!("NULLNET_BIN_PATH")))
             {
                 Ok(v) => v,
                 Err(e) => {
@@ -85,7 +85,7 @@ pub fn load_ingress(
             let _ = tc::qdisc_add_clsact(&iface);
 
             let program: &mut SchedClassifier =
-                bpf.program_mut("oryx").unwrap().try_into().unwrap();
+                bpf.program_mut("nullnet").unwrap().try_into().unwrap();
 
             if let Err(e) = program.load() {
                 error!("Failed to load the ingress eBPF program to the kernel. {e}",);

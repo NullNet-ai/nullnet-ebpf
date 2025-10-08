@@ -18,7 +18,7 @@ pub fn start(
     let iface = "interface_name";
 
     load_ingress(
-        iface.clone(),
+        iface,
         Arc::new(std::sync::atomic::AtomicBool::new(false)),
     );
 

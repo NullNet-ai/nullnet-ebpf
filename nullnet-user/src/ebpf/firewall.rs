@@ -1,7 +1,7 @@
 use std::net::{Ipv4Addr, Ipv6Addr};
 
 use aya::maps::{HashMap, MapData};
-use oryx_common::MAX_RULES_PORT;
+use nullnet_common::MAX_RULES_PORT;
 
 use crate::section::firewall::BlockedPort;
 

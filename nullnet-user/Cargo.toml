@@ -9,3 +9,7 @@ edition.workspace = true
 repository.workspace = true
 
 [dependencies]
+aya = "0.13"
+nullnet-common = { path = "../nullnet-common" }
+libc = "0.2"
+mio = { version = "1", features = ["os-poll", "os-ext"] }
