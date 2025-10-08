@@ -1,17 +1,23 @@
 use std::sync::Arc;
+use crate::ebpf::ingress::load_ingress;
 
 fn main() {
+    start();
 
+    // Keep the main thread alive
+    loop {
+        std::thread::park();
+    }
 }
 
 pub fn start(
-    notification_sender: kanal::Sender<Event>,
-) -> AppResult<()> {
+    // notification_sender: kanal::Sender<Event>,
+) {
     let iface = "interface_name";
 
     load_ingress(
         iface.clone(),
-        Arc::new(AtomicBool::new(false)),
+        Arc::new(std::sync::atomic::AtomicBool::new(false)),
     );
 
     // load_egress(
@@ -22,6 +28,4 @@ pub fn start(
     //     self.firewall_chans.egress.receiver.clone(),
     //     self.traffic_direction.terminate_egress.clone(),
     // );
-
-    Ok(())
 }
