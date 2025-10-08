@@ -15,7 +15,7 @@ fn main() {
 pub fn start(
     // notification_sender: kanal::Sender<Event>,
 ) {
-    let iface = "interface_name";
+    let iface = "interface_name".to_string();
 
     load_ingress(
         iface,
