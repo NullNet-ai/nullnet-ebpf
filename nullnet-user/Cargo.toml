@@ -1,0 +1,11 @@
+[package]
+name = "nullnet-user"
+description.workspace = true
+authors.workspace = true
+version.workspace = true
+readme.workspace = true
+license.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[dependencies]

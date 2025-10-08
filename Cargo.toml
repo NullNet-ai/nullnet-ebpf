@@ -1,9 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["xtask",
-#    "nullnet-tui",
-    "nullnet-common"
-]
+members = ["xtask", "nullnet-common", "nullnet-user"]
 
 [workspace.package]
 description = "Control network traffic on Linux using eBPF"
