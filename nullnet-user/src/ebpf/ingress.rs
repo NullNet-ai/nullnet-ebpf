@@ -14,13 +14,6 @@ use aya::{
 use log::error;
 use nullnet_common::{MAX_RULES_PORT, RawData, protocols::Protocol};
 
-use crate::{
-    event::Event,
-    filter::FilterChannelSignal,
-    notification::{Notification, NotificationLevel},
-    packet::direction::TrafficDirection,
-    section::firewall::FirewallSignal,
-};
 use mio::{Events, Interest, Poll, Token, unix::SourceFd};
 
 use super::{
@@ -54,12 +47,12 @@ pub fn load_ingress(
                 Ok(v) => v,
                 Err(e) => {
                     error!("Failed to load the ingress eBPF bytecode. {e}");
-                    Notification::send(
-                        "Failed to load the ingress eBPF bytecode",
-                        NotificationLevel::Error,
-                        notification_sender,
-                    )
-                    .unwrap();
+                    // Notification::send(
+                    //     "Failed to load the ingress eBPF bytecode",
+                    //     NotificationLevel::Error,
+                    //     notification_sender,
+                    // )
+                    // .unwrap();
                     return;
                 }
             };
@@ -72,12 +65,12 @@ pub fn load_ingress(
                 Ok(v) => v,
                 Err(e) => {
                     error!("Failed to load the ingress eBPF bytecode. {}", e);
-                    Notification::send(
-                        "Failed to load the ingress eBPF bytecode",
-                        NotificationLevel::Error,
-                        notification_sender,
-                    )
-                    .unwrap();
+                    // Notification::send(
+                    //     "Failed to load the ingress eBPF bytecode",
+                    //     NotificationLevel::Error,
+                    //     notification_sender,
+                    // )
+                    // .unwrap();
                     return;
                 }
             };
@@ -89,12 +82,12 @@ pub fn load_ingress(
 
             if let Err(e) = program.load() {
                 error!("Failed to load the ingress eBPF program to the kernel. {e}",);
-                Notification::send(
-                    "Failed to load the ingress eBPF program to the kernel",
-                    NotificationLevel::Error,
-                    notification_sender,
-                )
-                .unwrap();
+                // Notification::send(
+                //     "Failed to load the ingress eBPF program to the kernel",
+                //     NotificationLevel::Error,
+                //     notification_sender,
+                // )
+                // .unwrap();
                 return;
             };
 
