@@ -30,8 +30,6 @@ use super::{
 
 pub fn load_ingress(
     iface: String,
-    data_sender: kanal::Sender<([u8; RawData::LEN], TrafficDirection)>,
-    filter_channel_receiver: kanal::Receiver<FilterChannelSignal>,
     terminate: Arc<AtomicBool>,
 ) {
     thread::spawn({
@@ -102,12 +100,12 @@ pub fn load_ingress(
 
             if let Err(e) = program.attach(&iface, TcAttachType::Ingress) {
                 error!("Failed to attach the ingress eBPF program to the interface. {e}",);
-                Notification::send(
-                    "Failed to attach the ingress eBPF program to the interface",
-                    NotificationLevel::Error,
-                    notification_sender,
-                )
-                .unwrap();
+                // Notification::send(
+                //     "Failed to attach the ingress eBPF program to the interface",
+                //     NotificationLevel::Error,
+                //     notification_sender,
+                // )
+                // .unwrap();
                 return;
             };
 
@@ -218,8 +216,8 @@ pub fn load_ingress(
                             if terminate.load(std::sync::atomic::Ordering::Relaxed) {
                                 break;
                             }
-                            let data: [u8; RawData::LEN] = item.to_owned().try_into().unwrap();
-                            data_sender.send((data, TrafficDirection::Ingress)).ok();
+                            // let data: [u8; RawData::LEN] = item.to_owned().try_into().unwrap();
+                            // data_sender.send((data, TrafficDirection::Ingress)).ok();
                         }
                     }
                 }
