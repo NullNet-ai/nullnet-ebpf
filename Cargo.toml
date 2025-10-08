@@ -1,0 +1,23 @@
+[workspace]
+resolver = "2"
+members = ["xtask",
+#    "nullnet-tui",
+    "nullnet-common"
+]
+
+[workspace.package]
+description = "Control network traffic on Linux using eBPF"
+authors = ["Giuliano Bellini <gyulyvgc99@gmail.com>"]
+version = "0.1.0"
+readme = "README.md"
+license = "AGPL-3.0-only"
+edition = "2024"
+repository = "https://github.com/NullNet-ai/nullnet-ebpf"
+
+[workspace.dependencies]
+network-types = { git = "https://github.com/vadorovsky/network-types", rev = "b78424c" }
+
+[profile.release]
+lto = "fat"
+strip = true
+codegen-units = 1

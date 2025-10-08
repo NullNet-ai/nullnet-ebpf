@@ -1,0 +1,17 @@
+[package]
+name = "nullnet-common"
+description = "nullnet common"
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+edition.workspace = true
+
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+network-types = { workspace = true }
+strum = { version = "0.27", default-features = false, features = ["derive"] }
