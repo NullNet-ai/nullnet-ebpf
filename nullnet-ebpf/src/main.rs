@@ -156,6 +156,9 @@ fn filter_packet(protocol: Protocol) -> bool {
 
 #[inline]
 fn process(ctx: TcContext) -> Result<i32, ()> {
+    // just drop every packet for now
+    return Ok(TC_ACT_SHOT);
+
     let eth_header: *const EthHdr = ptr_at(&ctx, 0)?;
 
     let pid = if is_ingress() {
