@@ -39,25 +39,6 @@ pub fn load_ingress(
 
             let traffic_direction = EbpfTrafficDirection::Ingress as i32;
 
-            #[cfg(debug_assertions)]
-            let mut bpf = match EbpfLoader::new()
-                .set_global("TRAFFIC_DIRECTION", &traffic_direction, true)
-                .load(include_bytes_aligned!(env!("NULLNET_BIN_PATH")))
-            {
-                Ok(v) => v,
-                Err(e) => {
-                    error!("Failed to load the ingress eBPF bytecode. {e}");
-                    // Notification::send(
-                    //     "Failed to load the ingress eBPF bytecode",
-                    //     NotificationLevel::Error,
-                    //     notification_sender,
-                    // )
-                    // .unwrap();
-                    return;
-                }
-            };
-
-            #[cfg(not(debug_assertions))]
             let mut bpf = match EbpfLoader::new()
                 .set_global("TRAFFIC_DIRECTION", &traffic_direction, true)
                 .load(include_bytes_aligned!(env!("NULLNET_BIN_PATH")))

@@ -15,7 +15,7 @@ fn main() {
 pub fn start(
     // notification_sender: kanal::Sender<Event>,
 ) {
-    let iface = "interface_name".to_string();
+    let iface = "ens18".to_string();
 
     load_ingress(
         iface,
