@@ -18,7 +18,7 @@ use mio::{Events, Interest, Poll, Token, unix::SourceFd};
 
 use super::{
     EbpfTrafficDirection, RingBuffer,
-    firewall::{update_ipv4_blocklist, update_ipv6_blocklist},
+    // firewall::{update_ipv4_blocklist, update_ipv6_blocklist},
 };
 
 pub fn load_ingress(
