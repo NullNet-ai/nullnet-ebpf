@@ -15,12 +15,7 @@ fn main() {
 pub fn start(
     // notification_sender: kanal::Sender<Event>,
 ) {
-    let iface = "ens18".to_string();
-
-    load_ingress(
-        iface,
-        Arc::new(std::sync::atomic::AtomicBool::new(false)),
-    );
+    load_ingress(Arc::new(std::sync::atomic::AtomicBool::new(false)));
 
     // load_egress(
     //     iface,

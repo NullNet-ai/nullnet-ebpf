@@ -22,14 +22,13 @@ use super::{
 };
 
 pub fn load_ingress(
-    iface: String,
     terminate: Arc<AtomicBool>,
 ) {
     thread::spawn({
-        let iface = iface.to_owned();
-        // let notification_sender = notification_sender.clone();
-
         move || {
+            let Ok(ifaces) = pcap::Device::list() else { return; };
+            let ifaces_names: Vec<String> = ifaces.iter().map(|d| d.name.to_owned()).collect();
+
             let rlim = libc::rlimit {
                 rlim_cur: libc::RLIM_INFINITY,
                 rlim_max: libc::RLIM_INFINITY,
@@ -56,7 +55,9 @@ pub fn load_ingress(
                 }
             };
 
-            let _ = tc::qdisc_add_clsact(&iface);
+            for iface_name in ifaces_names {
+                let _ = tc::qdisc_add_clsact(&iface_name);
+            }
 
             let program: &mut SchedClassifier =
                 bpf.program_mut("nullnet").unwrap().try_into().unwrap();
@@ -72,16 +73,20 @@ pub fn load_ingress(
                 return;
             };
 
-            if let Err(e) = program.attach(&iface, TcAttachType::Ingress) {
-                error!("Failed to attach the ingress eBPF program to the interface. {e}",);
-                // Notification::send(
-                //     "Failed to attach the ingress eBPF program to the interface",
-                //     NotificationLevel::Error,
-                //     notification_sender,
-                // )
-                // .unwrap();
-                return;
-            };
+            for direction in [TcAttachType::Ingress, TcAttachType::Egress] {
+                for iface_name in &ifaces_names {
+                    if let Err(e) = program.attach(&iface_name, direction) {
+                        error!("Failed to attach the ingress eBPF program to the interface. {e}",);
+                        // Notification::send(
+                        //     "Failed to attach the ingress eBPF program to the interface",
+                        //     NotificationLevel::Error,
+                        //     notification_sender,
+                        // )
+                        // .unwrap();
+                        return;
+                    };
+                }
+            }
 
             let mut poll = Poll::new().unwrap();
             let mut events = Events::with_capacity(128);

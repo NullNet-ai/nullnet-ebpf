@@ -14,3 +14,4 @@ nullnet-common = { path = "../nullnet-common" }
 libc = "0.2"
 mio = { version = "1", features = ["os-poll", "os-ext"] }
 log = "0.4"
+pcap = "2.3.0"
