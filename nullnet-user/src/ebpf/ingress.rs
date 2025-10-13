@@ -55,8 +55,8 @@ pub fn load_ingress(
                 }
             };
 
-            for iface_name in ifaces_names {
-                let _ = tc::qdisc_add_clsact(&iface_name);
+            for iface_name in &ifaces_names {
+                let _ = tc::qdisc_add_clsact(iface_name);
             }
 
             let program: &mut SchedClassifier =
@@ -75,7 +75,7 @@ pub fn load_ingress(
 
             for direction in [TcAttachType::Ingress, TcAttachType::Egress] {
                 for iface_name in &ifaces_names {
-                    if let Err(e) = program.attach(&iface_name, direction) {
+                    if let Err(e) = program.attach(iface_name, direction) {
                         error!("Failed to attach the ingress eBPF program to the interface. {e}",);
                         // Notification::send(
                         //     "Failed to attach the ingress eBPF program to the interface",
