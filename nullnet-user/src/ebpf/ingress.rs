@@ -29,6 +29,7 @@ pub fn load_ingress(
 
     for iface_name in ifaces_names {
         for direction in [TcAttachType::Ingress, TcAttachType::Egress] {
+            let iface_name = iface_name.clone();
             thread::spawn({
                 move || {
                     let rlim = libc::rlimit {
