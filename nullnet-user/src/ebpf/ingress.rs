@@ -28,7 +28,7 @@ pub fn load_ingress(
     let ifaces_names: Vec<String> = ifaces.iter().map(|d| d.name.to_owned()).collect();
 
     for direction in [TcAttachType::Ingress, TcAttachType::Egress] {
-        for iface_name in ifaces_names.into_iter() {
+        for iface_name in ifaces_names {
             thread::spawn({
                 move || {
                     let rlim = libc::rlimit {
