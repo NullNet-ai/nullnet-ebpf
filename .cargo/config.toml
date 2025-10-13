@@ -1,3 +1,6 @@
+[env]
+RUST_LOG="appguard,nullnet"
+
 [alias]
 xtask = "run --package xtask --"
 
