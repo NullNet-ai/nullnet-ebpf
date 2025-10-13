@@ -28,7 +28,7 @@ pub fn load_ingress(
     let ifaces_names: Vec<String> = ifaces.iter().map(|d| d.name.to_owned()).collect();
 
     for direction in [TcAttachType::Ingress, TcAttachType::Egress] {
-        for iface_name in &ifaces_names {
+        for iface_name in ifaces_names.into_iter() {
             thread::spawn({
                 move || {
                     let rlim = libc::rlimit {
@@ -48,7 +48,7 @@ pub fn load_ingress(
                         }
                     };
 
-                    let _ = tc::qdisc_add_clsact(iface_name);
+                    let _ = tc::qdisc_add_clsact(&iface_name);
 
                     let program: &mut SchedClassifier =
                         bpf.program_mut("nullnet").unwrap().try_into().unwrap();
@@ -58,7 +58,7 @@ pub fn load_ingress(
                         return;;
                     };
 
-                    if let Err(e) = program.attach(iface_name, direction) {
+                    if let Err(e) = program.attach(&iface_name, direction) {
                         error!("Failed to attach the ingress eBPF program to the interface. {e}",);
                         return;;
                     };
@@ -80,21 +80,21 @@ pub fn load_ingress(
                     loop {
                         poll.poll(&mut events, Some(Duration::from_millis(100)))
                             .unwrap();
-                        if terminate.load(std::sync::atomic::Ordering::Relaxed) {
-                            break;
-                        }
+                        // if terminate.load(std::sync::atomic::Ordering::Relaxed) {
+                        //     break;
+                        // }
                         for event in &events {
-                            if terminate.load(std::sync::atomic::Ordering::Relaxed) {
-                                break;
-                            }
+                            // if terminate.load(std::sync::atomic::Ordering::Relaxed) {
+                            //     break;
+                            // }
                             if event.token() == Token(0) && event.is_readable() {
-                                if terminate.load(std::sync::atomic::Ordering::Relaxed) {
-                                    break;
-                                }
+                                // if terminate.load(std::sync::atomic::Ordering::Relaxed) {
+                                //     break;
+                                // }
                                 while let Some(item) = ring_buf.next() {
-                                    if terminate.load(std::sync::atomic::Ordering::Relaxed) {
-                                        break;
-                                    }
+                                    // if terminate.load(std::sync::atomic::Ordering::Relaxed) {
+                                    //     break;
+                                    // }
                                     // let data: [u8; RawData::LEN] = item.to_owned().try_into().unwrap();
                                     // data_sender.send((data, TrafficDirection::Ingress)).ok();
                                 }
