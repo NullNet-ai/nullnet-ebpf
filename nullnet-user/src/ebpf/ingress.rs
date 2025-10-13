@@ -44,7 +44,7 @@ pub fn load_ingress(
                         Ok(v) => v,
                         Err(e) => {
                             error!("Failed to load the ingress eBPF bytecode. {}", e);
-                            continue;
+                            return;;
                         }
                     };
 
@@ -55,12 +55,12 @@ pub fn load_ingress(
 
                     if let Err(e) = program.load() {
                         error!("Failed to load the ingress eBPF program to the kernel. {e}",);
-                        continue;
+                        return;;
                     };
 
                     if let Err(e) = program.attach(iface_name, direction) {
                         error!("Failed to attach the ingress eBPF program to the interface. {e}",);
-                        continue;
+                        return;;
                     };
 
                     let mut poll = Poll::new().unwrap();
