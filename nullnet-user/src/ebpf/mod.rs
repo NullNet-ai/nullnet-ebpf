@@ -1,4 +1,4 @@
-pub mod ingress;
+pub mod load;
 
 use std::{io, os::fd::AsRawFd};
 
@@ -46,8 +46,4 @@ impl Source for RingBuffer<'_> {
     fn deregister(&mut self, registry: &Registry) -> io::Result<()> {
         SourceFd(&self.buffer.as_raw_fd()).deregister(registry)
     }
-}
-enum EbpfTrafficDirection {
-    Ingress = -1,
-    Egress = 1,
 }

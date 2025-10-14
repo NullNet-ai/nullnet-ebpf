@@ -16,14 +16,9 @@ use nullnet_common::{MAX_RULES_PORT, RawData, protocols::Protocol};
 
 use mio::{Events, Interest, Poll, Token, unix::SourceFd};
 
-use super::{
-    EbpfTrafficDirection, RingBuffer,
-    // firewall::{update_ipv4_blocklist, update_ipv6_blocklist},
-};
+use super::{RingBuffer};
 
-pub fn load_ingress(
-    terminate: Arc<AtomicBool>,
-) {
+pub fn load_ebpf() {
     let Ok(ifaces) = pcap::Device::list() else { return; };
     let ifaces_names: Vec<String> = ifaces.iter().map(|d| d.name.to_owned()).collect();
 
@@ -44,7 +39,7 @@ pub fn load_ingress(
                     {
                         Ok(v) => v,
                         Err(e) => {
-                            error!("Failed to load the ingress eBPF bytecode. {}", e);
+                            error!("Failed to load the eBPF bytecode. {}", e);
                             return;;
                         }
                     };
@@ -55,12 +50,12 @@ pub fn load_ingress(
                         bpf.program_mut("nullnet").unwrap().try_into().unwrap();
 
                     if let Err(e) = program.load() {
-                        error!("Failed to load the ingress eBPF program to the kernel. {e}",);
+                        error!("Failed to load the eBPF program to the kernel. {e}",);
                         return;;
                     };
 
                     if let Err(e) = program.attach(&iface_name, direction) {
-                        error!("Failed to attach the ingress eBPF program to the interface. {e}",);
+                        error!("Failed to attach the eBPF program to the interface. {e}",);
                         return;;
                     };
 
@@ -79,23 +74,10 @@ pub fn load_ingress(
                         .unwrap();
 
                     loop {
-                        poll.poll(&mut events, Some(Duration::from_millis(100)))
-                            .unwrap();
-                        // if terminate.load(std::sync::atomic::Ordering::Relaxed) {
-                        //     break;
-                        // }
+                        poll.poll(&mut events, Some(Duration::from_millis(100))).unwrap();
                         for event in &events {
-                            // if terminate.load(std::sync::atomic::Ordering::Relaxed) {
-                            //     break;
-                            // }
                             if event.token() == Token(0) && event.is_readable() {
-                                // if terminate.load(std::sync::atomic::Ordering::Relaxed) {
-                                //     break;
-                                // }
                                 while let Some(item) = ring_buf.next() {
-                                    // if terminate.load(std::sync::atomic::Ordering::Relaxed) {
-                                    //     break;
-                                    // }
                                     // let data: [u8; RawData::LEN] = item.to_owned().try_into().unwrap();
                                     // data_sender.send((data, TrafficDirection::Ingress)).ok();
                                 }
