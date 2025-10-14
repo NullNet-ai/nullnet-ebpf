@@ -7,11 +7,6 @@ use network_types::{
     arp::ArpHdr, eth::EthHdr, icmp::Icmp, ip::IpHdr, sctp::SctpHdr, tcp::TcpHdr, udp::UdpHdr,
 };
 
-pub mod protocols;
-
-pub const MAX_FIREWALL_RULES: u32 = 32;
-pub const MAX_RULES_PORT: usize = 32;
-
 #[derive(Clone)]
 #[repr(C)]
 pub struct RawData {

@@ -12,7 +12,7 @@ use aya::{
     programs::{SchedClassifier, TcAttachType, tc},
 };
 use log::error;
-use nullnet_common::{MAX_RULES_PORT, RawData, protocols::Protocol};
+use nullnet_common::{RawData, protocols::Protocol};
 
 use mio::{Events, Interest, Poll, Token, unix::SourceFd};
 

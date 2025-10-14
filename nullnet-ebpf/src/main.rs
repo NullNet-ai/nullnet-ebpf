@@ -18,10 +18,7 @@ use network_types::{
     tcp::TcpHdr,
     udp::UdpHdr,
 };
-use nullnet_common::{
-    MAX_FIREWALL_RULES, MAX_RULES_PORT, ProtoHdr, RawData, RawFrame, RawPacket,
-    protocols::{LinkProtocol, NetworkProtocol, Protocol, TransportProtocol},
-};
+use nullnet_common::{MAX_FIREWALL_RULES, ProtoHdr, RawData, RawFrame, RawPacket};
 
 #[map]
 static DATA: RingBuf = RingBuf::with_byte_size(4096 * RawFrame::LEN as u32, 0);
