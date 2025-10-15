@@ -3,22 +3,12 @@
 
 use aya_ebpf::{
     bindings::{TC_ACT_PIPE, TC_ACT_SHOT},
-    helpers::bpf_get_current_pid_tgid,
     macros::{classifier, map},
-    maps::{Array, HashMap, RingBuf},
+    maps::{RingBuf},
     programs::TcContext,
 };
 use core::mem;
-use network_types::{
-    arp::ArpHdr,
-    eth::{EthHdr, EtherType},
-    icmp::{Icmp, IcmpHdr, IcmpV6Hdr},
-    ip::{IpHdr, IpProto, Ipv4Hdr, Ipv6Hdr},
-    sctp::SctpHdr,
-    tcp::TcpHdr,
-    udp::UdpHdr,
-};
-use nullnet_common::{MAX_FIREWALL_RULES, ProtoHdr, RawData, RawFrame, RawPacket};
+use nullnet_common::{RawData, RawFrame};
 
 #[map]
 static DATA: RingBuf = RingBuf::with_byte_size(4096 * RawFrame::LEN as u32, 0);
@@ -65,7 +55,7 @@ fn is_ingress() -> bool {
 }
 
 #[inline]
-fn process(ctx: TcContext) -> Result<i32, ()> {
+fn process(_ctx: TcContext) -> Result<i32, ()> {
     // just drop every packet for now
     return Ok(TC_ACT_SHOT);
 
