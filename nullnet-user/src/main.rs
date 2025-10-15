@@ -1,6 +1,5 @@
 mod ebpf;
 
-use std::sync::Arc;
 use ebpf::load::load_ebpf;
 
 fn main() {

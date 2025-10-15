@@ -1,18 +1,14 @@
 use std::{
-    net::IpAddr,
     os::fd::AsRawFd,
-    sync::{Arc, atomic::AtomicBool},
     thread,
     time::Duration,
 };
 
 use aya::{
     EbpfLoader, include_bytes_aligned,
-    maps::{Array, HashMap},
     programs::{SchedClassifier, TcAttachType, tc},
 };
 use log::error;
-use nullnet_common::{RawData, protocols::Protocol};
 
 use mio::{Events, Interest, Poll, Token, unix::SourceFd};
 
@@ -40,7 +36,7 @@ pub fn load_ebpf() {
                         Ok(v) => v,
                         Err(e) => {
                             error!("Failed to load the eBPF bytecode. {}", e);
-                            return;;
+                            return;
                         }
                     };
 
@@ -51,12 +47,12 @@ pub fn load_ebpf() {
 
                     if let Err(e) = program.load() {
                         error!("Failed to load the eBPF program to the kernel. {e}",);
-                        return;;
+                        return;
                     };
 
                     if let Err(e) = program.attach(&iface_name, direction) {
                         error!("Failed to attach the eBPF program to the interface. {e}",);
-                        return;;
+                        return;
                     };
 
                     let mut poll = Poll::new().unwrap();
@@ -77,7 +73,7 @@ pub fn load_ebpf() {
                         poll.poll(&mut events, Some(Duration::from_millis(100))).unwrap();
                         for event in &events {
                             if event.token() == Token(0) && event.is_readable() {
-                                while let Some(item) = ring_buf.next() {
+                                while let Some(_item) = ring_buf.next() {
                                     // let data: [u8; RawData::LEN] = item.to_owned().try_into().unwrap();
                                     // data_sender.send((data, TrafficDirection::Ingress)).ok();
                                 }
@@ -85,9 +81,9 @@ pub fn load_ebpf() {
                         }
                     }
 
-                    let _ = poll
-                        .registry()
-                        .deregister(&mut SourceFd(&ring_buf.buffer.as_raw_fd()));
+                    // let _ = poll
+                    //     .registry()
+                    //     .deregister(&mut SourceFd(&ring_buf.buffer.as_raw_fd()));
                 }
             });
         }
