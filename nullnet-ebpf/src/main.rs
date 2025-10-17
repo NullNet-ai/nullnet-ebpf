@@ -2,11 +2,13 @@
 #![no_main]
 
 use aya_ebpf::{
-    bindings::{TC_ACT_PIPE, TC_ACT_SHOT},
+    bindings::{TC_ACT_PIPE, TC_ACT_SHOT, BPF_F_INGRESS},
     macros::{classifier, map},
     maps::{RingBuf},
     programs::TcContext,
+    helpers::{bpf_redirect, bpf_l3_csum_replace, bpf_l4_csum_replace},
 };
+use core::mem;
 use core::mem;
 use nullnet_common::{RawData, RawFrame};
 
@@ -20,8 +22,13 @@ static PID_HELPER_AVAILABILITY: u8 = 0;
 static TRAFFIC_DIRECTION: i32 = 0;
 
 #[classifier]
-pub fn nullnet(ctx: TcContext) -> i32 {
-    match process(ctx) {
+pub fn nullnet_drop(ctx: TcContext) -> i32 {
+    TC_ACT_SHOT
+}
+
+#[classifier]
+pub fn nullnet_redirect(ctx: TcContext) -> i32 {
+    match redirect(ctx) {
         Ok(ret) => ret,
         Err(_) => TC_ACT_PIPE,
     }
@@ -55,23 +62,38 @@ fn is_ingress() -> bool {
 }
 
 #[inline]
-fn process(_ctx: TcContext) -> Result<i32, ()> {
-    // just drop every packet for now
-    return Ok(TC_ACT_SHOT);
+fn redirect(ctx: TcContext) -> Result<i32, ()> {
+    let data = ctx.data() as *mut u8;
+    let data_end = ctx.data_end() as *mut u8;
 
+    if data.add(core::mem::size_of::<iphdr>()) > data_end {
+        return 0; // TC_ACT_OK
+    }
+
+    let iph = &mut *(data as *mut iphdr);
+
+    if iph.version() != 4 {
+        return 0; // not IPv4
+    }
+
+    // change dest IP
+    let old_dst = iph.daddr;
+    iph.daddr = u32::from_be_bytes([192, 168, 0, 2]);
+
+    // fix IPv4 header checksum
+    let _ = bpf_l3_csum_replace(ctx.skb() as *mut _, 10, old_dst, iph.daddr, 4);
+
+    // fix L4 checksum
+    let _ = bpf_l4_csum_replace(ctx.skb() as *mut _, 0, old_dst, iph.daddr, 4);
+
+    // redirect
+    let target_ifindex: i32 = 5; // tun1 index
+    return bpf_redirect(target_ifindex, 0) as i32;
+}
+
+// #[inline]
+// fn process(_ctx: TcContext) -> Result<i32, ()> {
     // let eth_header: *const EthHdr = ptr_at(&ctx, 0)?;
-    //
-    // let pid = if is_ingress() {
-    //     None
-    // } else {
-    //     let is_pid_helper_available = unsafe { core::ptr::read_volatile(&PID_HELPER_AVAILABILITY) };
-    //
-    //     if is_pid_helper_available == 1 {
-    //         Some((bpf_get_current_pid_tgid() >> 32) as u32)
-    //     } else {
-    //         None
-    //     }
-    // };
     //
     // let ether_type = EtherType::try_from(unsafe { (*eth_header).ether_type }).map_err(|_| ())?;
     //
@@ -291,7 +313,7 @@ fn process(_ctx: TcContext) -> Result<i32, ()> {
     // };
     //
     // Ok(TC_ACT_PIPE)
-}
+// }
 
 #[panic_handler]
 fn panic(_info: &core::panic::PanicInfo) -> ! {

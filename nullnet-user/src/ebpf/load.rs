@@ -43,7 +43,7 @@ pub fn load_ebpf() {
                     let _ = tc::qdisc_add_clsact(&iface_name);
 
                     let program: &mut SchedClassifier =
-                        bpf.program_mut("nullnet").unwrap().try_into().unwrap();
+                        bpf.program_mut("nullnet_drop").unwrap().try_into().unwrap();
 
                     if let Err(e) = program.load() {
                         error!("Failed to load the eBPF program to the kernel. {e}",);
