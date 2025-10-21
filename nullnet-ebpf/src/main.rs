@@ -76,13 +76,13 @@ pub fn nullnet_redirect_ingress(ctx: TcContext) -> i32 {
     }
 }
 
-#[classifier]
-pub fn nullnet_redirect_egress(ctx: TcContext) -> i32 {
-    match redirect_egress(ctx) {
-        Ok(ret) => ret,
-        Err(_) => TC_ACT_PIPE,
-    }
-}
+// #[classifier]
+// pub fn nullnet_redirect_egress(ctx: TcContext) -> i32 {
+//     match redirect_egress(ctx) {
+//         Ok(ret) => ret,
+//         Err(_) => TC_ACT_PIPE,
+//     }
+// }
 
 #[inline]
 fn submit(data: RawData) {
@@ -148,7 +148,7 @@ fn redirect_ingress(ctx: TcContext) -> Result<i32, ()> {
         match (*iph).protocol {
             IPPROTO_TCP => {
                 if l4_offset + mem::size_of::<TcpHdr>() <= data_end {
-                    let tcph = (l4_offset as *mut TcpHdr) as *mut TcpHdr;
+                    // let tcph = (l4_offset as *mut TcpHdr) as *mut TcpHdr;
                     let _ = bpf_l4_csum_replace(ctx.skb.skb, 0, old_daddr as u64, new_daddr as u64, 4);
                     // Note: offset=0 used here; many kernels ignore offset for l4 helper and operate on the pseudo header.
                     // Some kernels require a correct offset for the checksum field; if so, adjust accordingly.
@@ -156,7 +156,7 @@ fn redirect_ingress(ctx: TcContext) -> Result<i32, ()> {
             }
             IPPROTO_UDP => {
                 if l4_offset + mem::size_of::<UdpHdr>() <= data_end {
-                    let udph = (l4_offset as *mut UdpHdr) as *mut UdpHdr;
+                    // let udph = (l4_offset as *mut UdpHdr) as *mut UdpHdr;
                     let _ = bpf_l4_csum_replace(ctx.skb.skb, 0, old_daddr as u64, new_daddr as u64, 4);
                 }
             }
