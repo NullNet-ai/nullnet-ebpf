@@ -1,8 +1,10 @@
 mod ebpf;
+mod tun;
 
 use ebpf::load::load_ebpf;
 use tun::setup::setup_tun;
 use nullnet_common::{TUN1_IPADDR, TUN1_NAME, TUN2_IPADDR, TUN2_NAME};
+use std::net::{IpAddr, Ipv4Addr};
 
 fn main() {
     // kill the main thread as soon as a secondary thread panics

@@ -1,5 +1,5 @@
 use tun2::{Configuration};
-use std::net::{IpAddr};
+use std::net::{IpAddr, Ipv4Addr};
 
 pub(crate) fn setup_tun(name: &str, ip: IpAddr) {
     // configure TUN device
