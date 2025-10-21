@@ -9,7 +9,7 @@ use aya_ebpf::{
     helpers::{bpf_redirect, bpf_l3_csum_replace, bpf_l4_csum_replace},
 };
 use core::mem;
-use nullnet_common::{RawData, RawFrame};
+use nullnet_common::{RawData, RawFrame, TUN1_IPADDR, TUN2_IPADDR};
 
 #[map]
 static DATA: RingBuf = RingBuf::with_byte_size(4096 * RawFrame::LEN as u32, 0);
@@ -22,9 +22,6 @@ static TRAFFIC_DIRECTION: i32 = 0;
 
 const IPPROTO_TCP: u8 = 6;
 const IPPROTO_UDP: u8  = 17;
-
-static TUN1_IPADDR: u32 = u32::from_be_bytes([10, 0, 0, 1]);
-static TUN2_IPADDR: u32 = u32::from_be_bytes([10, 0, 1, 1]);
 
 static TUN1_IFINDEX: u32 = 5;
 static TUN2_IFINDEX: u32 = 6;
