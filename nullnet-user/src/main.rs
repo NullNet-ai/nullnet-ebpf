@@ -4,11 +4,11 @@ use ebpf::load::load_ebpf;
 
 fn main() {
     // kill the main thread as soon as a secondary thread panics
-    let orig_hook = panic::take_hook();
-    panic::set_hook(Box::new(move |panic_info| {
+    let orig_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |panic_info| {
         // invoke the default handler and exit the process
         orig_hook(panic_info);
-        process::exit(1);
+        std::process::exit(1);
     }));
 
     // setup_tun();
