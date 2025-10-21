@@ -10,7 +10,7 @@ use aya::{
 };
 use log::error;
 
-use nullnet_common::{TUN1_NAME, TUN2_NAME};
+use nullnet_common::{TUN1_NAME, TUN0_NAME};
 
 use mio::{Events, Interest, Poll, Token, unix::SourceFd};
 
@@ -22,7 +22,7 @@ pub fn load_ebpf() {
 
     // attach nullnet_drop to all interfaces except our TUN interfaces
     for iface_name in ifaces_names {
-        if iface_name == TUN1_NAME || iface_name == TUN2_NAME {
+        if iface_name == TUN1_NAME || iface_name == TUN0_NAME {
             continue;
         }
         for direction in [TcAttachType::Ingress, TcAttachType::Egress] {
