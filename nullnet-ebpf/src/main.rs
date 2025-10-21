@@ -141,14 +141,14 @@ fn redirect_ingress(ctx: TcContext) -> Result<i32, ()> {
     // fix IPv4 header checksum:
     // helper signature: bpf_l3_csum_replace(skb, offset, from, to, size)
     // offset for IPv4 checksum adjustment is 10 (checksum field bytes offset within header)
-    let _ = bpf_l3_csum_replace(ctx.skb as *mut _, 10, old_daddr as u64, new_daddr as u64, 4);
+    let _ = bpf_l3_csum_replace(ctx.skb.skb, 10, old_daddr as u64, new_daddr as u64, 4);
 
     // If TCP/UDP, update pseudo-header checksum
     match (*iph).protocol {
         IPPROTO_TCP => {
             if l4_offset + mem::size_of::<TcpHdr>() <= data_end {
                 let tcph = (l4_offset as *mut TcpHdr) as *mut TcpHdr;
-                let _ = bpf_l4_csum_replace(ctx.skb as *mut _, 0, old_daddr as u64, new_daddr as u64, 4);
+                let _ = bpf_l4_csum_replace(ctx.skb.skb, 0, old_daddr as u64, new_daddr as u64, 4);
                 // Note: offset=0 used here; many kernels ignore offset for l4 helper and operate on the pseudo header.
                 // Some kernels require a correct offset for the checksum field; if so, adjust accordingly.
             }
@@ -156,7 +156,7 @@ fn redirect_ingress(ctx: TcContext) -> Result<i32, ()> {
         IPPROTO_UDP => {
             if l4_offset + mem::size_of::<UdpHdr>() <= data_end {
                 let udph = (l4_offset as *mut UdpHdr) as *mut UdpHdr;
-                let _ = bpf_l4_csum_replace(ctx.skb as *mut _, 0, old_daddr as u64, new_daddr as u64, 4);
+                let _ = bpf_l4_csum_replace(ctx.skb.skb, 0, old_daddr as u64, new_daddr as u64, 4);
             }
         }
         _ => {}
