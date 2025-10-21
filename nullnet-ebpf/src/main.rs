@@ -2,13 +2,12 @@
 #![no_main]
 
 use aya_ebpf::{
-    bindings::{TC_ACT_PIPE, TC_ACT_SHOT, BPF_F_INGRESS},
+    bindings::{TC_ACT_PIPE, TC_ACT_SHOT, TC_ACT_OK, BPF_F_INGRESS, iphdr},
     macros::{classifier, map},
     maps::{RingBuf},
     programs::TcContext,
     helpers::{bpf_redirect, bpf_l3_csum_replace, bpf_l4_csum_replace},
 };
-use core::mem;
 use core::mem;
 use nullnet_common::{RawData, RawFrame};
 
@@ -24,8 +23,8 @@ static TRAFFIC_DIRECTION: i32 = 0;
 static TUN1_IPADDR: u32 = u32::from_be_bytes([10, 0, 0, 1]);
 static TUN2_IPADDR: u32 = u32::from_be_bytes([10, 0, 1, 1]);
 
-static TUN1_IFINDEX: i32 = 5;
-static TUN2_IFINDEX: i32 = 6;
+static TUN1_IFINDEX: u32 = 5;
+static TUN2_IFINDEX: u32 = 6;
 
 #[classifier]
 pub fn nullnet_drop(ctx: TcContext) -> i32 {
@@ -33,8 +32,16 @@ pub fn nullnet_drop(ctx: TcContext) -> i32 {
 }
 
 #[classifier]
-pub fn nullnet_redirect(ctx: TcContext) -> i32 {
-    match redirect(ctx) {
+pub fn nullnet_redirect_ingress(ctx: TcContext) -> i32 {
+    match redirect_ingress(ctx) {
+        Ok(ret) => ret,
+        Err(_) => TC_ACT_PIPE,
+    }
+}
+
+#[classifier]
+pub fn nullnet_redirect_egress(ctx: TcContext) -> i32 {
+    match redirect_egress(ctx) {
         Ok(ret) => ret,
         Err(_) => TC_ACT_PIPE,
     }
@@ -73,13 +80,13 @@ fn redirect_ingress(ctx: TcContext) -> Result<i32, ()> {
     let data_end = ctx.data_end() as *mut u8;
 
     if data.add(core::mem::size_of::<iphdr>()) > data_end {
-        return 0; // TC_ACT_OK
+        return Ok(TC_ACT_OK);
     }
 
     let iph = &mut *(data as *mut iphdr);
 
     if iph.version() != 4 {
-        return 0; // not IPv4
+        return Ok(TC_ACT_OK);
     }
 
     // change dest IP
@@ -87,13 +94,13 @@ fn redirect_ingress(ctx: TcContext) -> Result<i32, ()> {
     iph.daddr = TUN2_IPADDR;
 
     // fix IPv4 header checksum
-    let _ = bpf_l3_csum_replace(ctx.skb() as *mut _, 10, old_dst, iph.daddr, 4);
+    let _ = bpf_l3_csum_replace(ctx.skb as *mut _, 10, old_dst, iph.daddr, 4);
 
     // fix L4 checksum
-    let _ = bpf_l4_csum_replace(ctx.skb() as *mut _, 0, old_dst, iph.daddr, 4);
+    let _ = bpf_l4_csum_replace(ctx.skb as *mut _, 0, old_dst, iph.daddr, 4);
 
     // redirect
-    return bpf_redirect(TUN2_IFINDEX, 0) as i32;
+    Ok(bpf_redirect(TUN2_IFINDEX, 0) as i32)
 }
 
 #[inline]
@@ -102,13 +109,13 @@ fn redirect_egress(ctx: TcContext) -> Result<i32, ()> {
     let data_end = ctx.data_end() as *mut u8;
 
     if data.add(core::mem::size_of::<iphdr>()) > data_end {
-        return 0; // TC_ACT_OK
+        return OK(TC_ACT_OK);
     }
 
     let iph = &mut *(data as *mut iphdr);
 
     if iph.version() != 4 {
-        return 0; // not IPv4
+        return OK(TC_ACT_OK);
     }
 
     // change source IP
@@ -116,13 +123,13 @@ fn redirect_egress(ctx: TcContext) -> Result<i32, ()> {
     iph.saddr = TUN1_IPADDR;
 
     // fix IPv4 header checksum
-    let _ = bpf_l3_csum_replace(ctx.skb() as *mut _, 10, old_src, iph.saddr, 4);
+    let _ = bpf_l3_csum_replace(ctx.skb as *mut _, 10, old_src, iph.saddr, 4);
 
     // fix L4 checksum
-    let _ = bpf_l4_csum_replace(ctx.skb() as *mut _, 0, old_src, iph.saddr, 4);
+    let _ = bpf_l4_csum_replace(ctx.skb as *mut _, 0, old_src, iph.saddr, 4);
 
     // redirect
-    return bpf_redirect(TUN1_IFINDEX, 0) as i32;
+    Ok(bpf_redirect(TUN1_IFINDEX, 0) as i32)
 }
 
 // #[inline]
