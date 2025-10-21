@@ -7,11 +7,11 @@ use network_types::{
     arp::ArpHdr, eth::EthHdr, icmp::Icmp, ip::IpHdr, sctp::SctpHdr, tcp::TcpHdr, udp::UdpHdr,
 };
 
-static TUN1_IPADDR: u32 = u32::from_be_bytes([10, 0, 0, 1]);
-static TUN2_IPADDR: u32 = u32::from_be_bytes([10, 0, 1, 1]);
+pub static TUN1_IPADDR: u32 = u32::from_be_bytes([10, 0, 0, 1]);
+pub static TUN2_IPADDR: u32 = u32::from_be_bytes([10, 0, 1, 1]);
 
-static TUN1_NAME: &'static str = "tun1";
-static TUN2_NAME: &'static str = "tun2";
+pub static TUN1_NAME: &'static str = "tun1";
+pub static TUN2_NAME: &'static str = "tun2";
 
 #[derive(Clone)]
 #[repr(C)]
