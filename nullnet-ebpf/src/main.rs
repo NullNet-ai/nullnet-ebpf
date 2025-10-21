@@ -21,6 +21,12 @@ static PID_HELPER_AVAILABILITY: u8 = 0;
 #[unsafe(no_mangle)]
 static TRAFFIC_DIRECTION: i32 = 0;
 
+static TUN1_IPADDR: u32 = u32::from_be_bytes([10, 0, 0, 1]);
+static TUN2_IPADDR: u32 = u32::from_be_bytes([10, 0, 1, 1]);
+
+static TUN1_IFINDEX: i32 = 5;
+static TUN2_IFINDEX: i32 = 6;
+
 #[classifier]
 pub fn nullnet_drop(ctx: TcContext) -> i32 {
     TC_ACT_SHOT
@@ -62,7 +68,7 @@ fn is_ingress() -> bool {
 }
 
 #[inline]
-fn redirect(ctx: TcContext) -> Result<i32, ()> {
+fn redirect_ingress(ctx: TcContext) -> Result<i32, ()> {
     let data = ctx.data() as *mut u8;
     let data_end = ctx.data_end() as *mut u8;
 
@@ -78,7 +84,7 @@ fn redirect(ctx: TcContext) -> Result<i32, ()> {
 
     // change dest IP
     let old_dst = iph.daddr;
-    iph.daddr = u32::from_be_bytes([192, 168, 0, 2]);
+    iph.daddr = TUN2_IPADDR;
 
     // fix IPv4 header checksum
     let _ = bpf_l3_csum_replace(ctx.skb() as *mut _, 10, old_dst, iph.daddr, 4);
@@ -87,8 +93,36 @@ fn redirect(ctx: TcContext) -> Result<i32, ()> {
     let _ = bpf_l4_csum_replace(ctx.skb() as *mut _, 0, old_dst, iph.daddr, 4);
 
     // redirect
-    let target_ifindex: i32 = 5; // tun1 index
-    return bpf_redirect(target_ifindex, 0) as i32;
+    return bpf_redirect(TUN2_IFINDEX, 0) as i32;
+}
+
+#[inline]
+fn redirect_egress(ctx: TcContext) -> Result<i32, ()> {
+    let data = ctx.data() as *mut u8;
+    let data_end = ctx.data_end() as *mut u8;
+
+    if data.add(core::mem::size_of::<iphdr>()) > data_end {
+        return 0; // TC_ACT_OK
+    }
+
+    let iph = &mut *(data as *mut iphdr);
+
+    if iph.version() != 4 {
+        return 0; // not IPv4
+    }
+
+    // change source IP
+    let old_src = iph.saddr;
+    iph.saddr = TUN1_IPADDR;
+
+    // fix IPv4 header checksum
+    let _ = bpf_l3_csum_replace(ctx.skb() as *mut _, 10, old_src, iph.saddr, 4);
+
+    // fix L4 checksum
+    let _ = bpf_l4_csum_replace(ctx.skb() as *mut _, 0, old_src, iph.saddr, 4);
+
+    // redirect
+    return bpf_redirect(TUN1_IFINDEX, 0) as i32;
 }
 
 // #[inline]
