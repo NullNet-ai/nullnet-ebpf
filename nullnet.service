@@ -1,0 +1,19 @@
+# copy this file in /etc/systemd/system:
+#   sudo cp nullnet.service /etc/systemd/system/
+# enable the service to start at boot:
+#   sudo systemctl enable nullnet
+
+# on Fedora, it was required to edit /etc/selinux/config to run the executable
+
+[Unit]
+Description=eBPF-based networking in Rust
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/%H/nullnet-ebpf
+ExecStart=/home/%H/nullnet-ebpf/target/release/nullnet-user
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
