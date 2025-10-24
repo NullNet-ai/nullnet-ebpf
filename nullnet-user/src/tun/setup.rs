@@ -1,5 +1,6 @@
 use tun::{Configuration};
 use std::net::{IpAddr, Ipv4Addr};
+use std::io::Read;
 
 pub(crate) fn setup_tun(name: &str, ip: IpAddr) {
     thread::spawn(move || {
