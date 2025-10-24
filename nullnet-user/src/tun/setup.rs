@@ -3,7 +3,7 @@ use std::net::{IpAddr, Ipv4Addr};
 use std::io::Read;
 
 pub(crate) fn setup_tun(name: &str, ip: IpAddr) {
-    thread::spawn(move || {
+    std::thread::spawn(move || {
         let mut config = Configuration::default();
         config
             .mtu(42500)
