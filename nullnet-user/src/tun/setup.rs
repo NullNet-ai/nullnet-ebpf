@@ -15,7 +15,7 @@ pub(crate) fn setup_tun(name: &str, ip: IpAddr) {
 
         let mut buf = [0; 4096];
         loop {
-            let _ = tun.read(&mut buf)?;
+            let _ = tun.read(&mut buf);
         }
     });
 }
