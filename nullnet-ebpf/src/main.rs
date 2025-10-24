@@ -158,7 +158,7 @@ fn redirect_ingress(ctx: TcContext) -> Result<i32, ()> {
         }
 
         // redirect
-        Ok(bpf_redirect(1, BPF_F_INGRESS) as i32)
+        Ok(bpf_redirect(1, BPF_F_INGRESS.into()) as i32)
     }
 }
 
