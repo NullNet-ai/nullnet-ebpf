@@ -3,6 +3,7 @@ use std::net::{IpAddr, Ipv4Addr};
 use std::io::Read;
 
 pub(crate) fn setup_tun(name: &str, ip: IpAddr) {
+    let name = name.to_string();
     std::thread::spawn(move || {
         let mut config = Configuration::default();
         config
@@ -11,7 +12,7 @@ pub(crate) fn setup_tun(name: &str, ip: IpAddr) {
             .address(ip)
             .netmask(IpAddr::V4(Ipv4Addr::new(255, 255, 255, 0)))
             .up();
-        let tun = tun::create(&config).unwrap();
+        let mut tun = tun::create(&config).unwrap();
 
         let mut buf = [0; 4096];
         loop {
