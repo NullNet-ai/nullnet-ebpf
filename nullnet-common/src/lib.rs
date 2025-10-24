@@ -11,7 +11,7 @@ pub static TUN0_IPADDR: u32 = u32::from_be_bytes([10, 0, 0, 1]);
 pub static TUN1_IPADDR: u32 = u32::from_be_bytes([10, 0, 1, 1]);
 
 pub static TUN0_NAME: &'static str = "tun0";
-pub static TUN1_NAME: &'static str = "tun1";
+pub static ETHINTF_NAME: &'static str = "ens18";
 
 #[derive(Clone)]
 #[repr(C)]

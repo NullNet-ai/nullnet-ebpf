@@ -9,7 +9,7 @@ use aya_ebpf::{
     helpers::{bpf_redirect, bpf_l3_csum_replace, bpf_l4_csum_replace},
 };
 use core::mem;
-use nullnet_common::{RawData, RawFrame, TUN1_IPADDR, TUN0_IPADDR};
+use nullnet_common::{RawData, RawFrame, TUN0_IPADDR, TUN0_NAME};
 
 #[map]
 static DATA: RingBuf = RingBuf::with_byte_size(4096 * RawFrame::LEN as u32, 0);
@@ -22,9 +22,6 @@ static TRAFFIC_DIRECTION: i32 = 0;
 
 const IPPROTO_TCP: u8 = 6;
 const IPPROTO_UDP: u8  = 17;
-
-static TUN1_IFINDEX: u32 = 5;
-static TUN0_IFINDEX: u32 = 6;
 
 #[repr(C)]
 struct Ipv4Hdr {
@@ -161,6 +158,7 @@ fn redirect_ingress(ctx: TcContext) -> Result<i32, ()> {
         }
 
         // redirect
+        let tun0_ifindex = getifaddrs::if_nametoindex(TUN0_NAME).unwrap_or(0);
         Ok(bpf_redirect(TUN0_IFINDEX, 0) as i32)
     }
 }

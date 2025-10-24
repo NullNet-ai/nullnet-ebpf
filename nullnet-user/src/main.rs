@@ -3,7 +3,7 @@ mod tun;
 
 use ebpf::load::load_ebpf;
 use tun::setup::setup_tun;
-use nullnet_common::{TUN1_IPADDR, TUN1_NAME, TUN0_IPADDR, TUN0_NAME};
+use nullnet_common::{TUN0_IPADDR, TUN0_NAME};
 use std::net::{IpAddr, Ipv4Addr};
 
 fn main() {
@@ -15,7 +15,6 @@ fn main() {
         std::process::exit(1);
     }));
 
-    let tun1 = setup_tun(TUN1_NAME, IpAddr::V4(Ipv4Addr::from_bits(TUN1_IPADDR)));
     let tun0 = setup_tun(TUN0_NAME, IpAddr::V4(Ipv4Addr::from_bits(TUN0_IPADDR)));
 
     load_ebpf();
