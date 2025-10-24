@@ -15,7 +15,7 @@ fn main() {
         std::process::exit(1);
     }));
 
-    let tun0 = setup_tun(TUN0_NAME, IpAddr::V4(Ipv4Addr::from_bits(TUN0_IPADDR)));
+    setup_tun(TUN0_NAME, IpAddr::V4(Ipv4Addr::from_bits(TUN0_IPADDR)));
 
     load_ebpf();
 
