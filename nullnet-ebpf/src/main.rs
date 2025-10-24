@@ -2,7 +2,7 @@
 #![no_main]
 
 use aya_ebpf::{
-    bindings::{TC_ACT_PIPE, TC_ACT_SHOT, TC_ACT_OK},
+    bindings::{TC_ACT_PIPE, TC_ACT_SHOT, TC_ACT_OK, BPF_F_INGRESS},
     macros::{classifier, map},
     maps::{RingBuf},
     programs::TcContext,
@@ -158,7 +158,7 @@ fn redirect_ingress(ctx: TcContext) -> Result<i32, ()> {
         }
 
         // redirect
-        Ok(bpf_redirect(1, 0) as i32)
+        Ok(bpf_redirect(1, BPF_F_INGRESS) as i32)
     }
 }
 
