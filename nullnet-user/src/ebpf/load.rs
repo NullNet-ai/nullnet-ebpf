@@ -10,7 +10,7 @@ use aya::{
 };
 use log::error;
 
-use nullnet_common::{ETHINTF_NAME, TUN0_NAME};
+use nullnet_common::{ETHIF_NAME, TUN0_NAME};
 
 use mio::{Events, Interest, Poll, Token, unix::SourceFd};
 
@@ -22,7 +22,7 @@ pub fn load_ebpf() {
 
     // attach nullnet_drop to all interfaces except our main ethernet and tun interfaces
     for iface_name in ifaces_names {
-        if iface_name == ETHINTF_NAME || iface_name == TUN0_NAME {
+        if iface_name == ETHIF_NAME || iface_name == TUN0_NAME {
             continue;
         }
         for direction in [TcAttachType::Ingress, TcAttachType::Egress] {
@@ -95,7 +95,7 @@ pub fn load_ebpf() {
         }
     }
 
-    // attach nullnet_redirect_ingress to ETHINTF ingress
+    // attach nullnet_redirect_ingress to ETHIF ingress
             thread::spawn({
                 move || {
                     let rlim = libc::rlimit {
@@ -115,7 +115,7 @@ pub fn load_ebpf() {
                         }
                     };
 
-                    let _ = tc::qdisc_add_clsact(ETHINTF_NAME);
+                    let _ = tc::qdisc_add_clsact(ETHIF_NAME);
 
                     let program: &mut SchedClassifier =
                         bpf.program_mut("nullnet_redirect_ingress").unwrap().try_into().unwrap();
@@ -125,7 +125,7 @@ pub fn load_ebpf() {
                         return;
                     };
 
-                    if let Err(e) = program.attach(ETHINTF_NAME, TcAttachType::Ingress) {
+                    if let Err(e) = program.attach(ETHIF_NAME, TcAttachType::Ingress) {
                         error!("Failed to attach the eBPF program to the interface. {e}",);
                         return;
                     };

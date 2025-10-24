@@ -10,7 +10,6 @@ repository = "https://github.com/NullNet-ai/nullnet-ebpf"
 aya-ebpf = "0.1.1"
 nullnet-common = { path = "../nullnet-common" }
 network-types = { git = "https://github.com/vadorovsky/network-types", rev = "b78424c" }
-getifaddrs = "0.6.0"
 
 [[bin]]
 name = "nullnet"

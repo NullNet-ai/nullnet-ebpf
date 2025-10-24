@@ -14,3 +14,4 @@ path = "src/lib.rs"
 [dependencies]
 network-types = { workspace = true }
 strum = { version = "0.27", default-features = false, features = ["derive"] }
+getifaddrs = "0.6.0"
