@@ -20,6 +20,9 @@ static PID_HELPER_AVAILABILITY: u8 = 0;
 #[unsafe(no_mangle)]
 static TRAFFIC_DIRECTION: i32 = 0;
 
+#[unsafe(no_mangle)]
+static TUN0_IFINDEX: u32 = 0;
+
 const IPPROTO_TCP: u8 = 6;
 const IPPROTO_UDP: u8  = 17;
 
@@ -106,6 +109,11 @@ fn is_ingress() -> bool {
 }
 
 #[inline]
+fn get_tun0_ifindex() -> u32 {
+    unsafe { core::ptr::read_volatile(&TUN0_IFINDEX) }
+}
+
+#[inline]
 fn redirect_ingress(ctx: TcContext) -> Result<i32, ()> {
     let data = ctx.data() as usize;
     let data_end = ctx.data_end() as usize;
@@ -158,7 +166,7 @@ fn redirect_ingress(ctx: TcContext) -> Result<i32, ()> {
         }
 
         // redirect
-        Ok(bpf_redirect(1, BPF_F_INGRESS.into()) as i32)
+        Ok(bpf_redirect(get_tun0_ifindex(), BPF_F_INGRESS.into()) as i32)
     }
 }
 

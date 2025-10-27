@@ -17,3 +17,4 @@ log = "0.4"
 pcap = "2.3.0"
 #tokio = { version = "1.35.1", features = ["net", "sync", "rt-multi-thread", "macros", "io-util", "time"] }
 tun = "0.8.4"
+getifaddrs = "0.6.0"

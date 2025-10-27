@@ -96,69 +96,73 @@ pub fn load_ebpf() {
     }
 
     // attach nullnet_redirect_ingress to ETHIF ingress
-            thread::spawn({
-                move || {
-                    let rlim = libc::rlimit {
-                        rlim_cur: libc::RLIM_INFINITY,
-                        rlim_max: libc::RLIM_INFINITY,
-                    };
+    thread::spawn({
+        move || {
+            let tun0_ifindex = getifaddrs::if_nametoindex("tun0").unwrap_or(0);
+            println!("tun0 ifindex: {tun0_ifindex}");
 
-                    unsafe { libc::setrlimit(libc::RLIMIT_MEMLOCK, &rlim) };
+            let rlim = libc::rlimit {
+                rlim_cur: libc::RLIM_INFINITY,
+                rlim_max: libc::RLIM_INFINITY,
+            };
 
-                    let mut bpf = match EbpfLoader::new()
-                        .load(include_bytes_aligned!(env!("NULLNET_BIN_PATH")))
-                    {
-                        Ok(v) => v,
-                        Err(e) => {
-                            error!("Failed to load the eBPF bytecode. {}", e);
-                            return;
-                        }
-                    };
+            unsafe { libc::setrlimit(libc::RLIMIT_MEMLOCK, &rlim) };
 
-                    let _ = tc::qdisc_add_clsact(ETHIF_NAME);
+            let mut bpf = match EbpfLoader::new()
+                .set_global("TUN0_IFINDEX", &tun0_ifindex, true)
+                .load(include_bytes_aligned!(env!("NULLNET_BIN_PATH")))
+            {
+                Ok(v) => v,
+                Err(e) => {
+                    error!("Failed to load the eBPF bytecode. {}", e);
+                    return;
+                }
+            };
 
-                    let program: &mut SchedClassifier =
-                        bpf.program_mut("nullnet_redirect_ingress").unwrap().try_into().unwrap();
+            let _ = tc::qdisc_add_clsact(ETHIF_NAME);
 
-                    if let Err(e) = program.load() {
-                        error!("Failed to load the eBPF program to the kernel. {e}",);
-                        return;
-                    };
+            let program: &mut SchedClassifier =
+                bpf.program_mut("nullnet_redirect_ingress").unwrap().try_into().unwrap();
 
-                    if let Err(e) = program.attach(ETHIF_NAME, TcAttachType::Ingress) {
-                        error!("Failed to attach the eBPF program to the interface. {e}",);
-                        return;
-                    };
+            if let Err(e) = program.load() {
+                error!("Failed to load the eBPF program to the kernel. {e}",);
+                return;
+            };
 
-                    let mut poll = Poll::new().unwrap();
-                    let mut events = Events::with_capacity(128);
+            if let Err(e) = program.attach(ETHIF_NAME, TcAttachType::Ingress) {
+                error!("Failed to attach the eBPF program to the interface. {e}",);
+                return;
+            };
 
-                    // packets reader
-                    let mut ring_buf = RingBuffer::new(&mut bpf);
+            let mut poll = Poll::new().unwrap();
+            let mut events = Events::with_capacity(128);
 
-                    poll.registry()
-                        .register(
-                            &mut SourceFd(&ring_buf.buffer.as_raw_fd()),
-                            Token(0),
-                            Interest::READABLE,
-                        )
-                        .unwrap();
+            // packets reader
+            let mut ring_buf = RingBuffer::new(&mut bpf);
 
-                    loop {
-                        poll.poll(&mut events, Some(Duration::from_millis(100))).unwrap();
-                        for event in &events {
-                            if event.token() == Token(0) && event.is_readable() {
-                                while let Some(_item) = ring_buf.next() {
-                                    // let data: [u8; RawData::LEN] = item.to_owned().try_into().unwrap();
-                                    // data_sender.send((data, TrafficDirection::Ingress)).ok();
-                                }
-                            }
+            poll.registry()
+                .register(
+                    &mut SourceFd(&ring_buf.buffer.as_raw_fd()),
+                    Token(0),
+                    Interest::READABLE,
+                )
+                .unwrap();
+
+            loop {
+                poll.poll(&mut events, Some(Duration::from_millis(100))).unwrap();
+                for event in &events {
+                    if event.token() == Token(0) && event.is_readable() {
+                        while let Some(_item) = ring_buf.next() {
+                            // let data: [u8; RawData::LEN] = item.to_owned().try_into().unwrap();
+                            // data_sender.send((data, TrafficDirection::Ingress)).ok();
                         }
                     }
-
-                    // let _ = poll
-                    //     .registry()
-                    //     .deregister(&mut SourceFd(&ring_buf.buffer.as_raw_fd()));
                 }
-            });
+            }
+
+            // let _ = poll
+            //     .registry()
+            //     .deregister(&mut SourceFd(&ring_buf.buffer.as_raw_fd()));
+        }
+    });
 }
