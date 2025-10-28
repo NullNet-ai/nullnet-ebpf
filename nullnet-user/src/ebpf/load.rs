@@ -45,6 +45,7 @@ pub fn load_ebpf() {
                             return;
                         }
                     };
+                    aya_log::EbpfLogger::init(&mut bpf).unwrap();
 
                     let _ = tc::qdisc_add_clsact(&iface_name);
 
@@ -118,6 +119,7 @@ pub fn load_ebpf() {
                     return;
                 }
             };
+            aya_log::EbpfLogger::init(&mut bpf).unwrap();
 
             let _ = tc::qdisc_add_clsact(ETHIF_NAME);
 

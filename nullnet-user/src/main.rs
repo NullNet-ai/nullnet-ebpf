@@ -7,6 +7,8 @@ use nullnet_common::{TUN0_IPADDR, TUN0_NAME};
 use std::net::{IpAddr, Ipv4Addr};
 
 fn main() {
+    env_logger::init();
+
     // kill the main thread as soon as a secondary thread panics
     let orig_hook = std::panic::take_hook();
     std::panic::set_hook(Box::new(move |panic_info| {
