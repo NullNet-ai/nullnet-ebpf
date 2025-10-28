@@ -119,7 +119,17 @@ pub fn load_ebpf() {
                     return;
                 }
             };
-            aya_log::EbpfLogger::init(&mut bpf).unwrap();
+
+            // initialize eBPF logger
+            let logger = aya_log::EbpfLogger::init(&mut bpf).unwrap();
+            let mut logger = tokio::io::unix::AsyncFd::with_interest(logger, tokio::io::Interest::READABLE).unwrap();
+            tokio::task::spawn(async move {
+                loop {
+                    let mut guard = logger.readable_mut().await.unwrap();
+                    guard.get_inner_mut().flush();
+                    guard.clear_ready();
+                }
+            });
 
             let _ = tc::qdisc_add_clsact(ETHIF_NAME);
 
