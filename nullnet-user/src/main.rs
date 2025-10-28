@@ -7,7 +7,7 @@ use nullnet_common::{TUN0_IPADDR, TUN0_NAME};
 use std::net::{IpAddr, Ipv4Addr};
 
 #[tokio::main]
-fn main() {
+async fn main() {
     env_logger::init();
 
     // kill the main thread as soon as a secondary thread panics
