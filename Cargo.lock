@@ -116,50 +116,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d18bc4e506fbb85ab7392ed993a7db4d1a452c71b75a246af4a80ab8c9d2dd50"
 dependencies = [
  "assert_matches",
- "aya-obj 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "aya-obj",
  "bitflags 2.10.0",
  "bytes",
  "libc",
  "log",
- "object 0.36.7",
+ "object",
  "once_cell",
  "thiserror 1.0.69",
-]
-
-[[package]]
-name = "aya"
-version = "0.13.1"
-source = "git+https://github.com/aya-rs/aya?branch=main#948b8553ee72ab72d91c9a16e7e937a75eb0e155"
-dependencies = [
- "assert_matches",
- "aya-obj 0.2.1 (git+https://github.com/aya-rs/aya?branch=main)",
- "bitflags 2.10.0",
- "bytes",
- "hashbrown 0.16.0",
- "libc",
- "log",
- "object 0.37.3",
- "once_cell",
- "thiserror 2.0.17",
-]
-
-[[package]]
-name = "aya-log"
-version = "0.2.1"
-source = "git+https://github.com/aya-rs/aya?branch=main#948b8553ee72ab72d91c9a16e7e937a75eb0e155"
-dependencies = [
- "aya 0.13.1 (git+https://github.com/aya-rs/aya?branch=main)",
- "aya-log-common",
- "log",
- "thiserror 2.0.17",
-]
-
-[[package]]
-name = "aya-log-common"
-version = "0.1.15"
-source = "git+https://github.com/aya-rs/aya?branch=main#948b8553ee72ab72d91c9a16e7e937a75eb0e155"
-dependencies = [
- "num_enum",
 ]
 
 [[package]]
@@ -172,20 +136,8 @@ dependencies = [
  "core-error",
  "hashbrown 0.15.5",
  "log",
- "object 0.36.7",
+ "object",
  "thiserror 1.0.69",
-]
-
-[[package]]
-name = "aya-obj"
-version = "0.2.1"
-source = "git+https://github.com/aya-rs/aya?branch=main#948b8553ee72ab72d91c9a16e7e937a75eb0e155"
-dependencies = [
- "bytes",
- "hashbrown 0.16.0",
- "log",
- "object 0.37.3",
- "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -430,12 +382,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d9c4f5dac5e15c24eb999c26181a6ca40b39fe946cbe4c263c7209467bc83af2"
 
 [[package]]
-name = "foldhash"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
-
-[[package]]
 name = "futures"
 version = "0.3.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -553,7 +499,7 @@ checksum = "9229cfe53dfd69f0609a49f65461bd93001ea1ef889cd5529dd176593f5338a1"
 dependencies = [
  "allocator-api2",
  "equivalent",
- "foldhash 0.1.5",
+ "foldhash",
 ]
 
 [[package]]
@@ -561,10 +507,6 @@ name = "hashbrown"
 version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5419bdc4f6a9207fbeba6d11b604d481addf78ecd10c11ad51e76c2f6482748d"
-dependencies = [
- "equivalent",
- "foldhash 0.2.0",
-]
 
 [[package]]
 name = "heck"
@@ -699,8 +641,7 @@ dependencies = [
 name = "nullnet-user"
 version = "0.1.0"
 dependencies = [
- "aya 0.13.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "aya-log",
+ "aya",
  "env_logger",
  "getifaddrs",
  "libc",
@@ -713,43 +654,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "num_enum"
-version = "0.7.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1207a7e20ad57b847bbddc6776b968420d38292bbfe2089accff5e19e82454c"
-dependencies = [
- "num_enum_derive",
- "rustversion",
-]
-
-[[package]]
-name = "num_enum_derive"
-version = "0.7.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff32365de1b6743cb203b710788263c44a03de03802daf96092f2da4fe6ba4d7"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.108",
-]
-
-[[package]]
 name = "object"
 version = "0.36.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "62948e14d923ea95ea2c7c86c71013138b66525b86bdc08d2dcc262bdb497b87"
-dependencies = [
- "crc32fast",
- "hashbrown 0.15.5",
- "indexmap",
- "memchr",
-]
-
-[[package]]
-name = "object"
-version = "0.37.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff76201f031d8863c38aa7f905eca4f53abbfa15f609db4277d44cd8938f33fe"
 dependencies = [
  "crc32fast",
  "hashbrown 0.15.5",
@@ -880,12 +788,6 @@ name = "regex-syntax"
 version = "0.8.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a2d987857b319362043e95f5353c0535c1f58eec5336fdfcf626430af7def58"
-
-[[package]]
-name = "rustversion"
-version = "1.0.22"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d"
 
 [[package]]
 name = "serde"
