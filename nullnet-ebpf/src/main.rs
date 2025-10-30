@@ -123,8 +123,6 @@ fn redirect_ingress(ctx: TcContext) -> Result<i32, ()> {
         return Ok(TC_ACT_OK);
     }
 
-    trace!(&ctx, "A");
-
     let iph = (data as *mut Ipv4Hdr) as *mut Ipv4Hdr;
 
     unsafe {
@@ -132,8 +130,6 @@ fn redirect_ingress(ctx: TcContext) -> Result<i32, ()> {
         if (*iph).version_ihl >> 4 != 4 {
             return Ok(TC_ACT_OK);
         }
-
-        trace!(&ctx, "B");
 
         let ihl = ((*iph).version_ihl & 0x0f) as usize;
         let ip_hdr_len = ihl * 4;
@@ -149,8 +145,6 @@ fn redirect_ingress(ctx: TcContext) -> Result<i32, ()> {
         // helper signature: bpf_l3_csum_replace(skb, offset, from, to, size)
         // offset for IPv4 checksum adjustment is 10 (checksum field bytes offset within header)
         let _ = bpf_l3_csum_replace(ctx.skb.skb, 10, old_daddr as u64, new_daddr as u64, 4);
-
-        trace!(&ctx, "C");
 
         // If TCP/UDP, update pseudo-header checksum
         match (*iph).protocol {
@@ -170,8 +164,6 @@ fn redirect_ingress(ctx: TcContext) -> Result<i32, ()> {
             }
             _ => {}
         }
-
-        trace!(&ctx, "D");
 
         // redirect
         Ok(bpf_redirect(get_tun0_ifindex(), BPF_F_INGRESS.into()) as i32)
