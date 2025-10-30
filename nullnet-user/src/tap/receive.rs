@@ -7,19 +7,18 @@ use tokio::net::UdpSocket;
 use tokio::sync::{Mutex, RwLock};
 use tun::AsyncDevice;
 
-use crate::craft::reject_payloads::send_termination_message;
-use crate::forward::frame::Frame;
+use crate::tap::frame::Frame;
 
 /// Handles incoming network packets (receives packets from the socket and sends them to the TUN interface),
 /// ensuring the firewall rules are correctly observed.
 pub async fn receive(
     device: WriteHalf<AsyncDevice>,
-    tap_ip: &IpAddr,
+    tap_ip: IpAddr,
 ) {
     let mut frame = Frame::new();
-    let mut remote_socket;
-    let socket_addr = SocketAddr::new(tap_ip, 9999);
-    let socket = UdpSocket::bind(forward_socket_addr).await.unwrap();
+    let mut _remote_socket;
+    let socket_addr = SocketAddr::new(*tap_ip, 9999);
+    let socket = UdpSocket::bind(socket_addr).await.unwrap();
     loop {
         // wait until there is an incoming packet on the socket (packets on the socket are raw IP)
         (frame.size, _remote_socket) = socket

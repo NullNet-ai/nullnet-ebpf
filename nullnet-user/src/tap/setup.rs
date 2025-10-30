@@ -1,8 +1,10 @@
 use tun::{Configuration};
 use std::net::{IpAddr, Ipv4Addr};
 use std::io::Read;
+use crate::tap::receive::receive;
+use crate::tap::send::send;
 
-pub(crate) fn setup_tap(name: &str, ip: IpAddr, ) {
+pub(crate) fn setup_tap(name: &str, ip: IpAddr) {
     let name = name.to_string();
     let mut config = Configuration::default();
     config
@@ -18,11 +20,11 @@ pub(crate) fn setup_tap(name: &str, ip: IpAddr, ) {
 
     // handle incoming traffic
     tokio::spawn(async move {
-        Box::pin(receive(write_half, &socket_1, &tun_ip)).await;
+        Box::pin(receive(write_half, ip)).await;
     });
 
     // handle outgoing traffic
     tokio::spawn(async move {
-        Box::pin(send(read_half, &socket_2, peers_2)).await;
+        Box::pin(send(read_half, ip)).await;
     });
 }
