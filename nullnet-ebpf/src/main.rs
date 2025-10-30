@@ -10,7 +10,6 @@ use aya_ebpf::{
 };
 use core::mem;
 use nullnet_common::{RawData, RawFrame, TUN0_IPADDR, TUN0_NAME};
-use aya_log_ebpf::{debug, error, info, trace, warn};
 
 #[map]
 static DATA: RingBuf = RingBuf::with_byte_size(4096 * RawFrame::LEN as u32, 0);
