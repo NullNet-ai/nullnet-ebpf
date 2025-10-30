@@ -13,11 +13,9 @@ use crate::tap::frame::Frame;
 /// ensuring the firewall rules are correctly observed.
 pub async fn send(
     mut device: ReadHalf<AsyncDevice>,
-    tap_ip: IpAddr,
+    socket: &Arc<UdpSocket>,
 ) {
     let mut frame = Frame::new();
-    let socket_addr = SocketAddr::new(tap_ip, 9999);
-    let socket = UdpSocket::bind(socket_addr).await.unwrap();
     loop {
         // wait until there is a packet outgoing from kernel
         frame.size = device

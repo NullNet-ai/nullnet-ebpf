@@ -18,7 +18,7 @@ async fn main() {
         std::process::exit(1);
     }));
 
-    setup_tap(TUN0_NAME, IpAddr::V4(Ipv4Addr::from_bits(TUN0_IPADDR)));
+    setup_tap(TUN0_NAME, IpAddr::V4(Ipv4Addr::from_bits(TUN0_IPADDR))).await;
 
     load_ebpf();
 

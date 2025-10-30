@@ -1,10 +1,12 @@
 use tun::{Configuration};
-use std::net::{IpAddr, Ipv4Addr};
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::io::Read;
+use std::sync::Arc;
+use tokio::net::UdpSocket;
 use crate::tap::receive::receive;
 use crate::tap::send::send;
 
-pub(crate) fn setup_tap(name: &str, ip: IpAddr) {
+pub(crate) async fn setup_tap(name: &str, ip: IpAddr) {
     let name = name.to_string();
     let mut config = Configuration::default();
     config
@@ -18,13 +20,17 @@ pub(crate) fn setup_tap(name: &str, ip: IpAddr) {
     let device = tun::create_as_async(&config).expect("Failed to create TUN device");
     let (read_half, write_half) = tokio::io::split(device);
 
+    let socket_addr = SocketAddr::new(ip, 9999);
+    let socket = Arc::new(UdpSocket::bind(socket_addr).await.unwrap());
+    let socket_2 = socket.clone();
+
     // handle incoming traffic
     tokio::spawn(async move {
-        Box::pin(receive(write_half, ip)).await;
+        Box::pin(receive(write_half, &socket)).await;
     });
 
     // handle outgoing traffic
     tokio::spawn(async move {
-        Box::pin(send(read_half, ip)).await;
+        Box::pin(send(read_half, &socket_2)).await;
     });
 }
