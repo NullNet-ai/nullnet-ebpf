@@ -16,7 +16,7 @@ pub async fn send(
     tap_ip: IpAddr,
 ) {
     let mut frame = Frame::new();
-    let socket_addr = SocketAddr::new(*tap_ip, 9999);
+    let socket_addr = SocketAddr::new(tap_ip, 9999);
     let socket = UdpSocket::bind(socket_addr).await.unwrap();
     loop {
         // wait until there is a packet outgoing from kernel
