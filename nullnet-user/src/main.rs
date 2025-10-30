@@ -6,7 +6,8 @@ use tap::setup::setup_tap;
 use nullnet_common::{TUN0_IPADDR, TUN0_NAME};
 use std::net::{IpAddr, Ipv4Addr};
 
-fn main() {
+#[tokio::main]
+async fn main() {
     env_logger::init();
 
     // kill the main thread as soon as a secondary thread panics
