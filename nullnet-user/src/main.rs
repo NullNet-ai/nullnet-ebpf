@@ -17,7 +17,7 @@ async fn main() {
     // read CLI arguments
     let Args {
         bind,
-        // peer,
+        peer,
     } = Args::parse();
 
     // kill the main thread as soon as a secondary thread panics
@@ -28,7 +28,7 @@ async fn main() {
         std::process::exit(1);
     }));
 
-    setup_tap(TUN0_NAME, IpAddr::from_str(&bind).unwrap()).await;
+    setup_tap(TUN0_NAME, IpAddr::from_str(&bind).unwrap(), IpAddr::from_str(&peer).unwrap()).await;
 
     // load_ebpf();
 

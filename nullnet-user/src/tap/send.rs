@@ -14,6 +14,7 @@ use crate::tap::frame::Frame;
 pub async fn send(
     mut device: ReadHalf<AsyncDevice>,
     socket: &Arc<UdpSocket>,
+    peer: SocketAddr,
 ) {
     let mut frame = Frame::new();
     loop {
@@ -26,11 +27,11 @@ pub async fn send(
         if frame.size > 0 {
             // send the packet to the socket
             let pkt_data = frame.pkt_data();
-            let Some(dst_socket) = get_dst_socket(pkt_data).await else {
-                continue;
-            };
-            println!("Sending packet to {}", dst_socket);
-            socket.send_to(pkt_data, dst_socket).await.unwrap_or(0);
+            // let Some(dst_socket) = get_dst_socket(pkt_data).await else {
+            //     continue;
+            // };
+            println!("Sending packet to {}", peer);
+            socket.send_to(pkt_data, peer).await.unwrap_or(0);
         }
     }
 }

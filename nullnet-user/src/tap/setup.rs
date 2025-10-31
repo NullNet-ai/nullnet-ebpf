@@ -6,7 +6,7 @@ use tokio::net::UdpSocket;
 use crate::tap::receive::receive;
 use crate::tap::send::send;
 
-pub(crate) async fn setup_tap(name: &str, ip: IpAddr) {
+pub(crate) async fn setup_tap(name: &str, ip: IpAddr, peer: IpAddr) {
     let name = name.to_string();
     let mut config = Configuration::default();
     config
@@ -24,6 +24,8 @@ pub(crate) async fn setup_tap(name: &str, ip: IpAddr) {
     let socket = Arc::new(UdpSocket::bind(socket_addr).await.unwrap());
     let socket_2 = socket.clone();
 
+    let peer_socket_addr = SocketAddr::new(peer, 9999);
+
     // handle incoming traffic
     tokio::spawn(async move {
         Box::pin(receive(write_half, &socket)).await;
@@ -31,6 +33,6 @@ pub(crate) async fn setup_tap(name: &str, ip: IpAddr) {
 
     // handle outgoing traffic
     tokio::spawn(async move {
-        Box::pin(send(read_half, &socket_2)).await;
+        Box::pin(send(read_half, &socket_2, peer_socket_addr)).await;
     });
 }

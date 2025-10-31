@@ -7,7 +7,7 @@ pub struct Args {
     /// Bind address of the TAP interface
     #[arg(long)]
     pub bind: String,
-    // /// Peer address to connect to
-    // #[arg(long)]
-    // pub peer: String,
+    /// Peer address to connect to
+    #[arg(long)]
+    pub peer: String,
 }
