@@ -29,6 +29,7 @@ pub async fn send(
             let Some(dst_socket) = get_dst_socket(pkt_data).await else {
                 continue;
             };
+            println!("Sending packet to {}", dst_socket);
             socket.send_to(pkt_data, dst_socket).await.unwrap_or(0);
         }
     }

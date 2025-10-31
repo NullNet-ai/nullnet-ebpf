@@ -16,14 +16,15 @@ pub async fn receive(
     socket: &Arc<UdpSocket>,
 ) {
     let mut frame = Frame::new();
-    let mut _remote_socket;
+    let mut remote_socket;
 
     loop {
         // wait until there is an incoming packet on the socket (packets on the socket are raw IP)
-        (frame.size, _remote_socket) = socket
+        (frame.size, remote_socket) = socket
             .recv_from(&mut frame.frame)
             .await
             .unwrap_or_else(|_| (0, SocketAddr::from_str("0.0.0.0:0").unwrap()));
+        println!("Received packet from {}", remote_socket);
 
         if frame.size > 0 {
             let pkt_data = frame.pkt_data();
