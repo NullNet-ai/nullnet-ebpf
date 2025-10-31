@@ -10,7 +10,7 @@ use network_types::{
 pub static TUN0_IPADDR: u32 = u32::from_be_bytes([10, 0, 0, 1]);
 pub static TUN1_IPADDR: u32 = u32::from_be_bytes([10, 0, 1, 1]);
 
-pub static TUN0_NAME: &'static str = "tun0";
+pub static TUN0_NAME: &'static str = "tap0";
 pub static ETHIF_NAME: &'static str = "ens18";
 
 // pub static TUN0_IFINDEX: std::sync::LazyLock<u32> = std::sync::LazyLock::new(|| {

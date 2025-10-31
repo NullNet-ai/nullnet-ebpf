@@ -5,10 +5,17 @@ use ebpf::load::load_ebpf;
 use tap::setup::setup_tap;
 use nullnet_common::{TUN0_IPADDR, TUN0_NAME};
 use std::net::{IpAddr, Ipv4Addr};
+use cli::Args;
 
 #[tokio::main]
 async fn main() {
     env_logger::init();
+
+    // read CLI arguments
+    let Args {
+        bind,
+        // peer,
+    } = Args::parse();
 
     // kill the main thread as soon as a secondary thread panics
     let orig_hook = std::panic::take_hook();
@@ -18,7 +25,7 @@ async fn main() {
         std::process::exit(1);
     }));
 
-    setup_tap(TUN0_NAME, IpAddr::V4(Ipv4Addr::from_bits(TUN0_IPADDR))).await;
+    setup_tap(TUN0_NAME, IpAddr::from_str(&bind).unwrap()).await;
 
     load_ebpf();
 
