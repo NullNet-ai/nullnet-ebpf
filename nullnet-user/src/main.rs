@@ -1,8 +1,8 @@
-mod ebpf;
+// mod ebpf;
 mod tap;
 mod cli;
 
-use ebpf::load::load_ebpf;
+// use ebpf::load::load_ebpf;
 use tap::setup::setup_tap;
 use nullnet_common::{TUN0_IPADDR, TUN0_NAME};
 use std::net::{IpAddr, Ipv4Addr};
@@ -30,7 +30,7 @@ async fn main() {
 
     setup_tap(TUN0_NAME, IpAddr::from_str(&bind).unwrap()).await;
 
-    load_ebpf();
+    // load_ebpf();
 
     // Keep the main thread alive
     loop {
