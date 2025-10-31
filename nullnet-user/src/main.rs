@@ -1,11 +1,13 @@
 mod ebpf;
 mod tap;
+mod cli;
 
 use ebpf::load::load_ebpf;
 use tap::setup::setup_tap;
 use nullnet_common::{TUN0_IPADDR, TUN0_NAME};
 use std::net::{IpAddr, Ipv4Addr};
 use cli::Args;
+use std::str::FromStr;
 
 #[tokio::main]
 async fn main() {
