@@ -38,7 +38,7 @@ pub fn nullnet_drop(_ctx: TcContext) -> i32 {
 pub fn nullnet_filter_ports(ctx: TcContext) -> i32 {
     match filter_ports(ctx) {
         Ok(ret) => ret,
-        Err(_) => TC_ACT_OK,
+        Err(_) => TC_ACT_SHOT,
     }
 }
 
