@@ -16,8 +16,6 @@ mio = { version = "1", features = ["os-poll", "os-ext"] }
 log = "0.4"
 pcap = "2.3.0"
 tokio = { version = "1.48.0", features = ["net", "sync", "rt-multi-thread", "macros", "io-util", "time"] }
-tun = { version = "0.8.4", features = ["async"] }
 clap = { version = "4.5.3", features = ["derive"] }
-getifaddrs = "0.6.0"
 #aya-log = { git = "https://github.com/aya-rs/aya", branch = "main" }
 env_logger = "0.11.8"

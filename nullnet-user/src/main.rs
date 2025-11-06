@@ -1,10 +1,7 @@
-// mod ebpf;
-mod tap;
+mod ebpf;
 mod cli;
 
-// use ebpf::load::load_ebpf;
-use tap::setup::setup_tap;
-use nullnet_common::{TUN0_IPADDR, TUN0_NAME};
+use ebpf::load::load_ebpf;
 use std::net::{IpAddr, Ipv4Addr};
 use cli::Args;
 use std::str::FromStr;
@@ -16,8 +13,8 @@ async fn main() {
 
     // read CLI arguments
     let Args {
-        bind,
-        peer,
+        tun_name,
+        eth_name,
     } = Args::parse();
 
     // kill the main thread as soon as a secondary thread panics
@@ -28,9 +25,7 @@ async fn main() {
         std::process::exit(1);
     }));
 
-    setup_tap(TUN0_NAME, IpAddr::from_str(&bind).unwrap(), IpAddr::from_str(&peer).unwrap()).await;
-
-    // load_ebpf();
+    load_ebpf(&tun_name, &eth_name);
 
     // Keep the main thread alive
     loop {

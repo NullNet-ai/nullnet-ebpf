@@ -10,96 +10,90 @@ use aya::{
 };
 use log::{error, debug};
 
-use nullnet_common::{ETHIF_NAME, TUN0_NAME};
-
 use mio::{Events, Interest, Poll, Token, unix::SourceFd};
 
 use super::{RingBuffer};
 
-pub fn load_ebpf() {
+pub fn load_ebpf(tun_name: &str, eth_name: &str) {
     let Ok(ifaces) = pcap::Device::list() else { return; };
     let ifaces_names: Vec<String> = ifaces.iter().map(|d| d.name.to_owned()).collect();
 
-    // attach nullnet_drop to all interfaces except our main ethernet and tun interfaces
-    // for iface_name in ifaces_names {
-    //     if iface_name == ETHIF_NAME || iface_name == TUN0_NAME {
-    //         continue;
-    //     }
-    //     for direction in [TcAttachType::Ingress, TcAttachType::Egress] {
-    //         let iface_name = iface_name.clone();
-    //         thread::spawn({
-    //             move || {
-    //                 let rlim = libc::rlimit {
-    //                     rlim_cur: libc::RLIM_INFINITY,
-    //                     rlim_max: libc::RLIM_INFINITY,
-    //                 };
-    //
-    //                 unsafe { libc::setrlimit(libc::RLIMIT_MEMLOCK, &rlim) };
-    //
-    //                 let mut bpf = match EbpfLoader::new()
-    //                     .load(include_bytes_aligned!(env!("NULLNET_BIN_PATH")))
-    //                 {
-    //                     Ok(v) => v,
-    //                     Err(e) => {
-    //                         error!("Failed to load the eBPF bytecode. {}", e);
-    //                         return;
-    //                     }
-    //                 };
-    //
-    //                 let _ = tc::qdisc_add_clsact(&iface_name);
-    //
-    //                 let program: &mut SchedClassifier =
-    //                     bpf.program_mut("nullnet_drop").unwrap().try_into().unwrap();
-    //
-    //                 if let Err(e) = program.load() {
-    //                     error!("Failed to load the eBPF program to the kernel. {e}",);
-    //                     return;
-    //                 };
-    //
-    //                 if let Err(e) = program.attach(&iface_name, direction) {
-    //                     error!("Failed to attach the eBPF program to the interface. {e}",);
-    //                     return;
-    //                 };
-    //
-    //                 let mut poll = Poll::new().unwrap();
-    //                 let mut events = Events::with_capacity(128);
-    //
-    //                 // packets reader
-    //                 let mut ring_buf = RingBuffer::new(&mut bpf);
-    //
-    //                 poll.registry()
-    //                     .register(
-    //                         &mut SourceFd(&ring_buf.buffer.as_raw_fd()),
-    //                         Token(0),
-    //                         Interest::READABLE,
-    //                     )
-    //                     .unwrap();
-    //
-    //                 loop {
-    //                     poll.poll(&mut events, Some(Duration::from_millis(100))).unwrap();
-    //                     for event in &events {
-    //                         if event.token() == Token(0) && event.is_readable() {
-    //                             while let Some(_item) = ring_buf.next() {
-    //                                 // let data: [u8; RawData::LEN] = item.to_owned().try_into().unwrap();
-    //                                 // data_sender.send((data, TrafficDirection::Ingress)).ok();
-    //                             }
-    //                         }
-    //                     }
-    //                 }
-    //
-    //                 // let _ = poll
-    //                 //     .registry()
-    //                 //     .deregister(&mut SourceFd(&ring_buf.buffer.as_raw_fd()));
-    //             }
-    //         });
-    //     }
-    // }
+    // attach nullnet_drop to all interfaces except for our ethernet and tun
+    for iface_name in ifaces_names {
+        if iface_name == eth_name || iface_name == tun_name {
+            continue;
+        }
+        for direction in [TcAttachType::Ingress, TcAttachType::Egress] {
+            let iface_name = iface_name.clone();
+            thread::spawn({
+                move || {
+                    debug!("Attaching nullnet_drop to {iface_name} for {direction:?} direction");
 
-    // attach nullnet_redirect_ingress to ETHIF ingress
+                    let rlim = libc::rlimit {
+                        rlim_cur: libc::RLIM_INFINITY,
+                        rlim_max: libc::RLIM_INFINITY,
+                    };
+
+                    unsafe { libc::setrlimit(libc::RLIMIT_MEMLOCK, &rlim) };
+
+                    let mut bpf = match EbpfLoader::new()
+                        .load(include_bytes_aligned!(env!("NULLNET_BIN_PATH")))
+                    {
+                        Ok(v) => v,
+                        Err(e) => {
+                            error!("Failed to load the eBPF bytecode. {}", e);
+                            return;
+                        }
+                    };
+
+                    let _ = tc::qdisc_add_clsact(&iface_name);
+
+                    let program: &mut SchedClassifier =
+                        bpf.program_mut("nullnet_drop").unwrap().try_into().unwrap();
+
+                    if let Err(e) = program.load() {
+                        error!("Failed to load the eBPF program to the kernel. {e}",);
+                        return;
+                    };
+
+                    if let Err(e) = program.attach(&iface_name, direction) {
+                        error!("Failed to attach the eBPF program to the interface. {e}",);
+                        return;
+                    };
+
+                    let mut poll = Poll::new().unwrap();
+                    let mut events = Events::with_capacity(128);
+
+                    // packets reader
+                    let mut ring_buf = RingBuffer::new(&mut bpf);
+
+                    poll.registry()
+                        .register(
+                            &mut SourceFd(&ring_buf.buffer.as_raw_fd()),
+                            Token(0),
+                            Interest::READABLE,
+                        )
+                        .unwrap();
+
+                    loop {
+                        poll.poll(&mut events, Some(Duration::from_millis(100))).unwrap();
+                        for event in &events {
+                            if event.token() == Token(0) && event.is_readable() {
+                                while let Some(_item) = ring_buf.next() {
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    // attach nullnet_filter_ports to the ethernet interface
+    for direction in [TcAttachType::Ingress, TcAttachType::Egress] {
     thread::spawn({
         move || {
-            let tun0_ifindex = getifaddrs::if_nametoindex("tun0").unwrap_or(0);
-            debug!("tun0 ifindex: {tun0_ifindex}");
+            debug!("Attaching nullnet_filter_ports to {eth_name} for {direction:?} direction");
 
             let rlim = libc::rlimit {
                 rlim_cur: libc::RLIM_INFINITY,
@@ -109,7 +103,6 @@ pub fn load_ebpf() {
             unsafe { libc::setrlimit(libc::RLIMIT_MEMLOCK, &rlim) };
 
             let mut bpf = match EbpfLoader::new()
-                .set_global("TUN0_IFINDEX", &tun0_ifindex, true)
                 .load(include_bytes_aligned!(env!("NULLNET_BIN_PATH")))
             {
                 Ok(v) => v,
@@ -119,17 +112,17 @@ pub fn load_ebpf() {
                 }
             };
 
-            let _ = tc::qdisc_add_clsact(ETHIF_NAME);
+            let _ = tc::qdisc_add_clsact(eth_name);
 
             let program: &mut SchedClassifier =
-                bpf.program_mut("nullnet_redirect_ingress").unwrap().try_into().unwrap();
+                bpf.program_mut("nullnet_filter_ports").unwrap().try_into().unwrap();
 
             if let Err(e) = program.load() {
                 error!("Failed to load the eBPF program to the kernel. {e}",);
                 return;
             };
 
-            if let Err(e) = program.attach(ETHIF_NAME, TcAttachType::Ingress) {
+            if let Err(e) = program.attach(eth_name, direction) {
                 error!("Failed to attach the eBPF program to the interface. {e}",);
                 return;
             };
@@ -153,16 +146,11 @@ pub fn load_ebpf() {
                 for event in &events {
                     if event.token() == Token(0) && event.is_readable() {
                         while let Some(_item) = ring_buf.next() {
-                            // let data: [u8; RawData::LEN] = item.to_owned().try_into().unwrap();
-                            // data_sender.send((data, TrafficDirection::Ingress)).ok();
                         }
                     }
                 }
             }
-
-            // let _ = poll
-            //     .registry()
-            //     .deregister(&mut SourceFd(&ring_buf.buffer.as_raw_fd()));
         }
     });
+    }
 }
