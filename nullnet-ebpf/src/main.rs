@@ -66,12 +66,20 @@ pub fn nullnet_drop(ctx: TcContext) -> i32 {
 }
 
 #[classifier]
-pub fn nullnet_redirect_ingress(ctx: TcContext) -> i32 {
-    match redirect_ingress(ctx) {
+pub fn nullnet_filter_ports(ctx: TcContext) -> i32 {
+    match filter_ports(ctx) {
         Ok(ret) => ret,
         Err(_) => TC_ACT_PIPE,
     }
 }
+
+// #[classifier]
+// pub fn nullnet_redirect_ingress(ctx: TcContext) -> i32 {
+//     match redirect_ingress(ctx) {
+//         Ok(ret) => ret,
+//         Err(_) => TC_ACT_PIPE,
+//     }
+// }
 
 // #[classifier]
 // pub fn nullnet_redirect_egress(ctx: TcContext) -> i32 {
@@ -108,67 +116,96 @@ fn is_ingress() -> bool {
     traffic_direction == -1
 }
 
-#[inline]
-fn get_tun0_ifindex() -> u32 {
-    unsafe { core::ptr::read_volatile(&TUN0_IFINDEX) }
-}
+// #[inline]
+// fn get_tun0_ifindex() -> u32 {
+//     unsafe { core::ptr::read_volatile(&TUN0_IFINDEX) }
+// }
 
 #[inline]
-fn redirect_ingress(ctx: TcContext) -> Result<i32, ()> {
-    let data = ctx.data() as usize;
-    let data_end = ctx.data_end() as usize;
+fn filter_ports(ctx: TcContext) -> Result<i32, ()> {
+    let eth_header: *const EthHdr = ptr_at(&ctx, 0)?;
+    let ether_type = EtherType::try_from(unsafe { (*eth_header).ether_type }).map_err(|_| ())?;
 
-    // Minimal size check for IPv4 header
-    if data + mem::size_of::<Ipv4Hdr>() > data_end {
-        return Ok(TC_ACT_OK);
-    }
+    match ether_type {
+        EtherType::Ipv4 => {
+            let ipv4_header: *const Ipv4Hdr = ptr_at(&ctx, EthHdr::LEN)?;
 
-    let iph = (data as *mut Ipv4Hdr) as *mut Ipv4Hdr;
+            match unsafe { (*ipv4_header).proto } {
+                IpProto::Udp => {
+                    let udp_header: *const UdpHdr = ptr_at(&ctx, EthHdr::LEN + Ipv4Hdr::LEN)?;
+                    let src_port = u16::from_be_bytes(unsafe { (*udp_header).src });
+                    let dst_port = u16::from_be_bytes(unsafe { (*udp_header).dst });
 
-    unsafe {
-        // version check
-        if (*iph).version_ihl >> 4 != 4 {
-            return Ok(TC_ACT_OK);
-        }
-
-        let ihl = ((*iph).version_ihl & 0x0f) as usize;
-        let ip_hdr_len = ihl * 4;
-        let l4_offset = data + ip_hdr_len;
-
-        let old_daddr = (*iph).daddr;
-        let new_daddr = TUN0_IPADDR;
-
-        // overwrite destination IP
-        (*iph).daddr = new_daddr;
-
-        // fix IPv4 header checksum:
-        // helper signature: bpf_l3_csum_replace(skb, offset, from, to, size)
-        // offset for IPv4 checksum adjustment is 10 (checksum field bytes offset within header)
-        let _ = bpf_l3_csum_replace(ctx.skb.skb, 10, old_daddr as u64, new_daddr as u64, 4);
-
-        // If TCP/UDP, update pseudo-header checksum
-        match (*iph).protocol {
-            IPPROTO_TCP => {
-                if l4_offset + mem::size_of::<TcpHdr>() <= data_end {
-                    // let tcph = (l4_offset as *mut TcpHdr) as *mut TcpHdr;
-                    let _ = bpf_l4_csum_replace(ctx.skb.skb, 0, old_daddr as u64, new_daddr as u64, 4);
-                    // Note: offset=0 used here; many kernels ignore offset for l4 helper and operate on the pseudo header.
-                    // Some kernels require a correct offset for the checksum field; if so, adjust accordingly.
+                    if src_port == dst_port
+                        && (src_port == 9998 || src_port == 9999) {
+                        return Ok(TC_ACT_OK);
+                    }
                 }
+                _ => {}
             }
-            IPPROTO_UDP => {
-                if l4_offset + mem::size_of::<UdpHdr>() <= data_end {
-                    // let udph = (l4_offset as *mut UdpHdr) as *mut UdpHdr;
-                    let _ = bpf_l4_csum_replace(ctx.skb.skb, 0, old_daddr as u64, new_daddr as u64, 4);
-                }
-            }
-            _ => {}
         }
+        _ => {}
+    };
 
-        // redirect
-        Ok(bpf_redirect(get_tun0_ifindex(), BPF_F_INGRESS.into()) as i32)
-    }
+    Ok(TC_ACT_SHOT)
 }
+
+// #[inline]
+// fn redirect_ingress(ctx: TcContext) -> Result<i32, ()> {
+//     let data = ctx.data() as usize;
+//     let data_end = ctx.data_end() as usize;
+//
+//     // Minimal size check for IPv4 header
+//     if data + mem::size_of::<Ipv4Hdr>() > data_end {
+//         return Ok(TC_ACT_OK);
+//     }
+//
+//     let iph = (data as *mut Ipv4Hdr) as *mut Ipv4Hdr;
+//
+//     unsafe {
+//         // version check
+//         if (*iph).version_ihl >> 4 != 4 {
+//             return Ok(TC_ACT_OK);
+//         }
+//
+//         let ihl = ((*iph).version_ihl & 0x0f) as usize;
+//         let ip_hdr_len = ihl * 4;
+//         let l4_offset = data + ip_hdr_len;
+//
+//         let old_daddr = (*iph).daddr;
+//         let new_daddr = TUN0_IPADDR;
+//
+//         // overwrite destination IP
+//         (*iph).daddr = new_daddr;
+//
+//         // fix IPv4 header checksum:
+//         // helper signature: bpf_l3_csum_replace(skb, offset, from, to, size)
+//         // offset for IPv4 checksum adjustment is 10 (checksum field bytes offset within header)
+//         let _ = bpf_l3_csum_replace(ctx.skb.skb, 10, old_daddr as u64, new_daddr as u64, 4);
+//
+//         // If TCP/UDP, update pseudo-header checksum
+//         match (*iph).protocol {
+//             IPPROTO_TCP => {
+//                 if l4_offset + mem::size_of::<TcpHdr>() <= data_end {
+//                     // let tcph = (l4_offset as *mut TcpHdr) as *mut TcpHdr;
+//                     let _ = bpf_l4_csum_replace(ctx.skb.skb, 0, old_daddr as u64, new_daddr as u64, 4);
+//                     // Note: offset=0 used here; many kernels ignore offset for l4 helper and operate on the pseudo header.
+//                     // Some kernels require a correct offset for the checksum field; if so, adjust accordingly.
+//                 }
+//             }
+//             IPPROTO_UDP => {
+//                 if l4_offset + mem::size_of::<UdpHdr>() <= data_end {
+//                     // let udph = (l4_offset as *mut UdpHdr) as *mut UdpHdr;
+//                     let _ = bpf_l4_csum_replace(ctx.skb.skb, 0, old_daddr as u64, new_daddr as u64, 4);
+//                 }
+//             }
+//             _ => {}
+//         }
+//
+//         // redirect
+//         Ok(bpf_redirect(get_tun0_ifindex(), BPF_F_INGRESS.into()) as i32)
+//     }
+// }
 
 // #[inline]
 // fn redirect_egress(ctx: TcContext) -> Result<i32, ()> {
