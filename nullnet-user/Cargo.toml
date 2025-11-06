@@ -10,12 +10,12 @@ repository.workspace = true
 
 [dependencies]
 aya = "0.13"
-nullnet-common = { path = "../nullnet-common" }
+#nullnet-common = { path = "../nullnet-common" }
 libc = "0.2"
-mio = { version = "1", features = ["os-poll", "os-ext"] }
+#mio = { version = "1", features = ["os-poll", "os-ext"] }
 log = "0.4"
 pcap = "2.3.0"
-tokio = { version = "1.48.0", features = ["net", "sync", "rt-multi-thread", "macros", "io-util", "time"] }
+#tokio = { version = "1.48.0", features = ["net", "sync", "rt-multi-thread", "macros", "io-util", "time"] }
 clap = { version = "4.5.3", features = ["derive"] }
 #aya-log = { git = "https://github.com/aya-rs/aya", branch = "main" }
 env_logger = "0.11.8"

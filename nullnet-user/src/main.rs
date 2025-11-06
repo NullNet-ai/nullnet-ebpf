@@ -5,8 +5,7 @@ use ebpf::load::load_ebpf;
 use cli::Args;
 use clap::Parser;
 
-#[tokio::main]
-async fn main() {
+fn main() {
     env_logger::init();
 
     // read CLI arguments

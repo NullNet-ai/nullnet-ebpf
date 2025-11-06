@@ -1,7 +1,5 @@
 use std::{
-    os::fd::AsRawFd,
     thread,
-    time::Duration,
 };
 
 use aya::{
@@ -9,8 +7,6 @@ use aya::{
     programs::{SchedClassifier, TcAttachType, tc},
 };
 use log::{error, debug};
-
-use mio::{Events, Interest, Poll, Token, unix::SourceFd};
 
 pub fn load_ebpf(tun_name: &str, eth_name: &str) {
     let Ok(ifaces) = pcap::Device::list() else { return; };
