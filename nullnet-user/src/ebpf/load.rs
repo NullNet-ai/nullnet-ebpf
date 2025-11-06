@@ -12,8 +12,6 @@ use log::{error, debug};
 
 use mio::{Events, Interest, Poll, Token, unix::SourceFd};
 
-use super::{RingBuffer};
-
 pub fn load_ebpf(tun_name: &str, eth_name: &str) {
     let Ok(ifaces) = pcap::Device::list() else { return; };
     let ifaces_names: Vec<String> = ifaces.iter().map(|d| d.name.to_owned()).collect();
@@ -61,29 +59,29 @@ pub fn load_ebpf(tun_name: &str, eth_name: &str) {
                         return;
                     };
 
-                    let mut poll = Poll::new().unwrap();
-                    let mut events = Events::with_capacity(128);
+                    // let mut poll = Poll::new().unwrap();
+                    // let mut events = Events::with_capacity(128);
 
                     // packets reader
-                    let mut ring_buf = RingBuffer::new(&mut bpf);
+                    // let mut ring_buf = RingBuffer::new(&mut bpf);
 
-                    poll.registry()
-                        .register(
-                            &mut SourceFd(&ring_buf.buffer.as_raw_fd()),
-                            Token(0),
-                            Interest::READABLE,
-                        )
-                        .unwrap();
-
-                    loop {
-                        poll.poll(&mut events, Some(Duration::from_millis(100))).unwrap();
-                        for event in &events {
-                            if event.token() == Token(0) && event.is_readable() {
-                                while let Some(_item) = ring_buf.next() {
-                                }
-                            }
-                        }
-                    }
+                    // poll.registry()
+                    //     .register(
+                    //         &mut SourceFd(&ring_buf.buffer.as_raw_fd()),
+                    //         Token(0),
+                    //         Interest::READABLE,
+                    //     )
+                    //     .unwrap();
+                    //
+                    // loop {
+                    //     poll.poll(&mut events, Some(Duration::from_millis(100))).unwrap();
+                    //     for event in &events {
+                    //         if event.token() == Token(0) && event.is_readable() {
+                    //             while let Some(_item) = ring_buf.next() {
+                    //             }
+                    //         }
+                    //     }
+                    // }
                 }
             });
         }
@@ -128,29 +126,29 @@ pub fn load_ebpf(tun_name: &str, eth_name: &str) {
                 return;
             };
 
-            let mut poll = Poll::new().unwrap();
-            let mut events = Events::with_capacity(128);
+            // let mut poll = Poll::new().unwrap();
+            // let mut events = Events::with_capacity(128);
 
             // packets reader
-            let mut ring_buf = RingBuffer::new(&mut bpf);
+            // let mut ring_buf = RingBuffer::new(&mut bpf);
+            //
+            // poll.registry()
+            //     .register(
+            //         &mut SourceFd(&ring_buf.buffer.as_raw_fd()),
+            //         Token(0),
+            //         Interest::READABLE,
+            //     )
+            //     .unwrap();
 
-            poll.registry()
-                .register(
-                    &mut SourceFd(&ring_buf.buffer.as_raw_fd()),
-                    Token(0),
-                    Interest::READABLE,
-                )
-                .unwrap();
-
-            loop {
-                poll.poll(&mut events, Some(Duration::from_millis(100))).unwrap();
-                for event in &events {
-                    if event.token() == Token(0) && event.is_readable() {
-                        while let Some(_item) = ring_buf.next() {
-                        }
-                    }
-                }
-            }
+            // loop {
+            //     poll.poll(&mut events, Some(Duration::from_millis(100))).unwrap();
+            //     for event in &events {
+            //         if event.token() == Token(0) && event.is_readable() {
+            //             while let Some(_item) = ring_buf.next() {
+            //             }
+            //         }
+            //     }
+            // }
         }
     });
     }
