@@ -55,7 +55,7 @@ pub fn load_ebpf(tun_name: &str, eth_name: &str) {
                     };
 
                     if let Err(e) = program.attach(&iface_name, direction) {
-                        error!("Failed to attach the eBPF program to the interface. {e}",);
+                        error!("Failed to attach the eBPF program to the interface '{iface_name}'. {e}",);
                         return;
                     };
 
@@ -122,7 +122,7 @@ pub fn load_ebpf(tun_name: &str, eth_name: &str) {
             };
 
             if let Err(e) = program.attach(&eth_name, direction) {
-                error!("Failed to attach the eBPF program to the interface. {e}",);
+                error!("Failed to attach the eBPF program to the interface '{eth_name}'. {e}",);
                 return;
             };
 
