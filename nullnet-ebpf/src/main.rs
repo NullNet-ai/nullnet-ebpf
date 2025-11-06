@@ -113,6 +113,9 @@ fn filter_ports(ctx: TcContext) -> Result<i32, ()> {
                 _ => {}
             }
         }
+        EtherType::Arp => {
+            return Ok(TC_ACT_OK);
+        }
         _ => {}
     };
 
