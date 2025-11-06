@@ -2,63 +2,33 @@
 #![no_main]
 
 use aya_ebpf::{
-    bindings::{TC_ACT_PIPE, TC_ACT_SHOT, TC_ACT_OK, BPF_F_INGRESS},
+    bindings::{TC_ACT_SHOT, TC_ACT_OK},
     macros::{classifier, map},
     maps::{RingBuf},
     programs::TcContext,
-    helpers::{bpf_redirect, bpf_l3_csum_replace, bpf_l4_csum_replace},
+};
+use network_types::{
+    eth::{EthHdr, EtherType},
+    ip::{IpHdr, IpProto, Ipv4Hdr},
+    udp::UdpHdr,
 };
 use core::mem;
-use nullnet_common::{RawData, RawFrame, TUN0_IPADDR, TUN0_NAME};
 
-#[map]
-static DATA: RingBuf = RingBuf::with_byte_size(4096 * RawFrame::LEN as u32, 0);
+// #[map]
+// static DATA: RingBuf = RingBuf::with_byte_size(4096 * RawFrame::LEN as u32, 0);
 
-#[unsafe(no_mangle)]
-static PID_HELPER_AVAILABILITY: u8 = 0;
+// #[unsafe(no_mangle)]
+// static PID_HELPER_AVAILABILITY: u8 = 0;
 
-#[unsafe(no_mangle)]
-static TRAFFIC_DIRECTION: i32 = 0;
+// #[unsafe(no_mangle)]
+// static TRAFFIC_DIRECTION: i32 = 0;
 
-#[unsafe(no_mangle)]
-static TUN0_IFINDEX: u32 = 0;
+// #[unsafe(no_mangle)]
+// static TUN0_IFINDEX: u32 = 0;
 
-const IPPROTO_TCP: u8 = 6;
-const IPPROTO_UDP: u8  = 17;
+// const IPPROTO_TCP: u8 = 6;
+// const IPPROTO_UDP: u8  = 17;
 
-#[repr(C)]
-struct Ipv4Hdr {
-    version_ihl: u8,
-    tos: u8,
-    tot_len: u16,
-    id: u16,
-    frag_off: u16,
-    ttl: u8,
-    protocol: u8,
-    check: u16,
-    saddr: u32,
-    daddr: u32,
-}
-
-#[repr(C)]
-struct TcpHdr {
-    source: u16,
-    dest: u16,
-    seq: u32,
-    ack_seq: u32,
-    doff_res_flags: u16,
-    window: u16,
-    check: u16,
-    urg_ptr: u16,
-}
-
-#[repr(C)]
-struct UdpHdr {
-    source: u16,
-    dest: u16,
-    len: u16,
-    check: u16,
-}
 
 #[classifier]
 pub fn nullnet_drop(ctx: TcContext) -> i32 {
@@ -69,7 +39,7 @@ pub fn nullnet_drop(ctx: TcContext) -> i32 {
 pub fn nullnet_filter_ports(ctx: TcContext) -> i32 {
     match filter_ports(ctx) {
         Ok(ret) => ret,
-        Err(_) => TC_ACT_PIPE,
+        Err(_) => TC_ACT_OK,
     }
 }
 
@@ -89,13 +59,13 @@ pub fn nullnet_filter_ports(ctx: TcContext) -> i32 {
 //     }
 // }
 
-#[inline]
-fn submit(data: RawData) {
-    if let Some(mut buf) = DATA.reserve::<RawData>(0) {
-        unsafe { (*buf.as_mut_ptr()) = data };
-        buf.submit(0);
-    }
-}
+// #[inline]
+// fn submit(data: RawData) {
+//     if let Some(mut buf) = DATA.reserve::<RawData>(0) {
+//         unsafe { (*buf.as_mut_ptr()) = data };
+//         buf.submit(0);
+//     }
+// }
 
 #[inline]
 fn ptr_at<T>(ctx: &TcContext, offset: usize) -> Result<*const T, ()> {
@@ -110,11 +80,11 @@ fn ptr_at<T>(ctx: &TcContext, offset: usize) -> Result<*const T, ()> {
     Ok((start + offset) as *const T)
 }
 
-#[inline]
-fn is_ingress() -> bool {
-    let traffic_direction = unsafe { core::ptr::read_volatile(&TRAFFIC_DIRECTION) };
-    traffic_direction == -1
-}
+// #[inline]
+// fn is_ingress() -> bool {
+//     let traffic_direction = unsafe { core::ptr::read_volatile(&TRAFFIC_DIRECTION) };
+//     traffic_direction == -1
+// }
 
 // #[inline]
 // fn get_tun0_ifindex() -> u32 {

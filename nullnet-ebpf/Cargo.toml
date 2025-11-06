@@ -8,8 +8,8 @@ repository = "https://github.com/NullNet-ai/nullnet-ebpf"
 
 [dependencies]
 aya-ebpf = "0.1.1"
-nullnet-common = { path = "../nullnet-common" }
 network-types = { git = "https://github.com/vadorovsky/network-types", rev = "b78424c" }
+#nullnet-common = { path = "../nullnet-common" }
 #aya-log-ebpf = { git = "https://github.com/aya-rs/aya", branch = "main" }
 
 [[bin]]
