@@ -113,7 +113,7 @@ pub fn load_ebpf(tun_name: &str, eth_name: &str) {
                 }
             };
 
-            let _ = tc::qdisc_add_clsact(eth_name);
+            let _ = tc::qdisc_add_clsact(&eth_name);
 
             let program: &mut SchedClassifier =
                 bpf.program_mut("nullnet_filter_ports").unwrap().try_into().unwrap();
@@ -123,7 +123,7 @@ pub fn load_ebpf(tun_name: &str, eth_name: &str) {
                 return;
             };
 
-            if let Err(e) = program.attach(eth_name, direction) {
+            if let Err(e) = program.attach(&eth_name, direction) {
                 error!("Failed to attach the eBPF program to the interface. {e}",);
                 return;
             };
