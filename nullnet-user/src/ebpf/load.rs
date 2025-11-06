@@ -126,6 +126,10 @@ pub fn load_ebpf(tun_name: &str, eth_name: &str) {
                 return;
             };
 
+            loop {
+                std::thread::park();
+            }
+
             // let mut poll = Poll::new().unwrap();
             // let mut events = Events::with_capacity(128);
 
