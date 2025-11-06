@@ -2,9 +2,7 @@ mod ebpf;
 mod cli;
 
 use ebpf::load::load_ebpf;
-use std::net::{IpAddr, Ipv4Addr};
 use cli::Args;
-use std::str::FromStr;
 use clap::Parser;
 
 #[tokio::main]

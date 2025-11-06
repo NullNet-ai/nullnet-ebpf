@@ -91,6 +91,7 @@ pub fn load_ebpf(tun_name: &str, eth_name: &str) {
 
     // attach nullnet_filter_ports to the ethernet interface
     for direction in [TcAttachType::Ingress, TcAttachType::Egress] {
+        let eth_name = eth_name.to_string();
     thread::spawn({
         move || {
             debug!("Attaching nullnet_filter_ports to {eth_name} for {direction:?} direction");

@@ -3,13 +3,12 @@
 
 use aya_ebpf::{
     bindings::{TC_ACT_SHOT, TC_ACT_OK},
-    macros::{classifier, map},
-    maps::{RingBuf},
+    macros::{classifier},
     programs::TcContext,
 };
 use network_types::{
     eth::{EthHdr, EtherType},
-    ip::{IpHdr, IpProto, Ipv4Hdr},
+    ip::{IpProto, Ipv4Hdr},
     udp::UdpHdr,
 };
 use core::mem;
@@ -31,7 +30,7 @@ use core::mem;
 
 
 #[classifier]
-pub fn nullnet_drop(ctx: TcContext) -> i32 {
+pub fn nullnet_drop(_ctx: TcContext) -> i32 {
     TC_ACT_SHOT
 }
 
