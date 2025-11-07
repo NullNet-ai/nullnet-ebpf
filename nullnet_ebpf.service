@@ -12,7 +12,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=/home/%H/nullnet-ebpf
-ExecStart=/home/%H/nullnet-ebpf/target/release/nullnet-user
+ExecStart=/home/%H/nullnet-ebpf/target/release/nullnet-user --tun-name tun0 --eth-name ens18
 Restart=always
 
 [Install]
