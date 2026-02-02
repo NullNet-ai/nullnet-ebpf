@@ -10,7 +10,7 @@ fn main() {
 
     // read CLI arguments
     let Args {
-        tun_name,
+        // tun_name,
         eth_name,
     } = Args::parse();
 
@@ -22,7 +22,7 @@ fn main() {
         std::process::exit(1);
     }));
 
-    load_ebpf(&tun_name, &eth_name);
+    load_ebpf(&eth_name);
 
     // Keep the main thread alive
     loop {

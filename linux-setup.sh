@@ -6,4 +6,4 @@ sudo systemctl enable nullnet_ebpf && \
 git checkout main && \
 git pull && \
 cargo xtask build --release && \
-sudo reboot
+sudo systemctl start nullnet_ebpf
