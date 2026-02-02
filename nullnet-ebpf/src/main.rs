@@ -105,8 +105,7 @@ fn filter_ports(ctx: TcContext) -> Result<i32, ()> {
                     let src_port = u16::from_be_bytes(unsafe { (*udp_header).src });
                     let dst_port = u16::from_be_bytes(unsafe { (*udp_header).dst });
 
-                    if src_port == dst_port
-                        && (src_port == 9998 || src_port == 9999) {
+                    if src_port == 9999 && dst_port == 9999 || src_port == 50051 || dst_port == 50051 {
                         return Ok(TC_ACT_OK);
                     }
                 }
