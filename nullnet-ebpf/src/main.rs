@@ -10,6 +10,7 @@ use network_types::{
     eth::{EthHdr, EtherType},
     ip::{IpProto, Ipv4Hdr},
     udp::UdpHdr,
+    tcp::TcpHdr,
 };
 use core::mem;
 
@@ -105,7 +106,16 @@ fn filter_ports(ctx: TcContext) -> Result<i32, ()> {
                     let src_port = u16::from_be_bytes(unsafe { (*udp_header).src });
                     let dst_port = u16::from_be_bytes(unsafe { (*udp_header).dst });
 
-                    if src_port == 9999 && dst_port == 9999 || src_port == 50051 || dst_port == 50051 {
+                    if src_port == 9999 && dst_port == 9999 {
+                        return Ok(TC_ACT_OK);
+                    }
+                }
+                IpProto::Tcp => {
+                    let tcp_header: *const TcpHdr = ptr_at(&ctx, EthHdr::LEN + Ipv4Hdr::LEN)?;
+                    let src_port = u16::from_be_bytes(unsafe { (*tcp_header).source });
+                    let dst_port = u16::from_be_bytes(unsafe { (*tcp_header).dest });
+
+                    if src_port == 50051 || dst_port == 50051 {
                         return Ok(TC_ACT_OK);
                     }
                 }
