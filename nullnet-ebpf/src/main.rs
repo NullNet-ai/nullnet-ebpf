@@ -113,36 +113,37 @@ fn filter_ports(ctx: TcContext) -> Result<i32, ()> {
             match unsafe { (*ipv4_header).proto } {
                 IpProto::Udp => {
                     let udp_header: *const UdpHdr = ptr_at(&ctx, EthHdr::LEN + Ipv4Hdr::LEN)?;
-                    let src_port = u16::from_be_bytes(unsafe { (*udp_header).src });
+                    // let src_port = u16::from_be_bytes(unsafe { (*udp_header).src });
                     let dst_port = u16::from_be_bytes(unsafe { (*udp_header).dst });
 
                     emit_if_watched(dst_port);
 
-                    if src_port == 9999 && dst_port == 9999 {
-                        return Ok(TC_ACT_OK);
-                    }
+                    // if src_port == 9999 && dst_port == 9999 {
+                    //     return Ok(TC_ACT_OK);
+                    // }
                 }
                 IpProto::Tcp => {
                     let tcp_header: *const TcpHdr = ptr_at(&ctx, EthHdr::LEN + Ipv4Hdr::LEN)?;
-                    let src_port = u16::from_be_bytes(unsafe { (*tcp_header).source });
+                    // let src_port = u16::from_be_bytes(unsafe { (*tcp_header).source });
                     let dst_port = u16::from_be_bytes(unsafe { (*tcp_header).dest });
 
                     emit_if_watched(dst_port);
 
-                    if src_port == 50051 || dst_port == 50051 {
-                        return Ok(TC_ACT_OK);
-                    }
+                    // if src_port == 50051 || dst_port == 50051 {
+                    //     return Ok(TC_ACT_OK);
+                    // }
                 }
                 _ => {}
             }
         }
-        EtherType::Arp => {
-            return Ok(TC_ACT_OK);
-        }
+        // EtherType::Arp => {
+        //     return Ok(TC_ACT_OK);
+        // }
         _ => {}
     };
 
-    Ok(TC_ACT_SHOT)
+    // Ok(TC_ACT_SHOT)
+    Ok(TC_ACT_OK)
 }
 
 #[inline]
