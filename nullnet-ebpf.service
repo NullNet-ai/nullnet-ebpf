@@ -1,0 +1,13 @@
+[Unit]
+Description=Nullnet eBPF
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/nullnet-ebpf
+EnvironmentFile=/root/nullnet-ebpf/.env
+ExecStart=/root/nullnet-ebpf/target/release/nullnet-user
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

@@ -1,18 +1,11 @@
 mod ebpf;
-mod cli;
+mod env;
 
 use ebpf::load::load_ebpf;
-use cli::Args;
-use clap::Parser;
+use env::ETH_NAME;
 
 fn main() {
     env_logger::init();
-
-    // read CLI arguments
-    let Args {
-        // tun_name,
-        eth_name,
-    } = Args::parse();
 
     // kill the main thread as soon as a secondary thread panics
     let orig_hook = std::panic::take_hook();
@@ -22,7 +15,7 @@ fn main() {
         std::process::exit(1);
     }));
 
-    load_ebpf(&eth_name);
+    load_ebpf(&ETH_NAME);
 
     // Keep the main thread alive
     loop {
