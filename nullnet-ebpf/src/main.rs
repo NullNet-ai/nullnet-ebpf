@@ -3,7 +3,8 @@
 
 use aya_ebpf::{
     bindings::{TC_ACT_SHOT, TC_ACT_OK},
-    macros::{classifier},
+    macros::{classifier, map},
+    maps::{HashMap, RingBuf},
     programs::TcContext,
 };
 use network_types::{
@@ -13,6 +14,15 @@ use network_types::{
     tcp::TcpHdr,
 };
 use core::mem;
+
+#[map]
+static WATCH_PORTS: HashMap<u16, u8> = HashMap::with_max_entries(1024, 0);
+
+#[map]
+static EVENTS: RingBuf = RingBuf::with_byte_size(4096, 0);
+
+#[unsafe(no_mangle)]
+static IS_EGRESS: u8 = 0;
 
 // #[map]
 // static DATA: RingBuf = RingBuf::with_byte_size(4096 * RawFrame::LEN as u32, 0);
@@ -106,6 +116,8 @@ fn filter_ports(ctx: TcContext) -> Result<i32, ()> {
                     let src_port = u16::from_be_bytes(unsafe { (*udp_header).src });
                     let dst_port = u16::from_be_bytes(unsafe { (*udp_header).dst });
 
+                    emit_if_watched(dst_port);
+
                     if src_port == 9999 && dst_port == 9999 {
                         return Ok(TC_ACT_OK);
                     }
@@ -114,6 +126,8 @@ fn filter_ports(ctx: TcContext) -> Result<i32, ()> {
                     let tcp_header: *const TcpHdr = ptr_at(&ctx, EthHdr::LEN + Ipv4Hdr::LEN)?;
                     let src_port = u16::from_be_bytes(unsafe { (*tcp_header).source });
                     let dst_port = u16::from_be_bytes(unsafe { (*tcp_header).dest });
+
+                    emit_if_watched(dst_port);
 
                     if src_port == 50051 || dst_port == 50051 {
                         return Ok(TC_ACT_OK);
@@ -129,6 +143,20 @@ fn filter_ports(ctx: TcContext) -> Result<i32, ()> {
     };
 
     Ok(TC_ACT_SHOT)
+}
+
+#[inline]
+fn emit_if_watched(dst_port: u16) {
+    if unsafe { core::ptr::read_volatile(&IS_EGRESS) } == 0 {
+        return;
+    }
+    if unsafe { WATCH_PORTS.get(&dst_port) }.is_none() {
+        return;
+    }
+    if let Some(mut entry) = EVENTS.reserve::<u16>(0) {
+        entry.write(dst_port);
+        entry.submit(0);
+    }
 }
 
 // #[inline]

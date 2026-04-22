@@ -1,5 +1,6 @@
 mod ebpf;
 mod env;
+mod triggers;
 
 use ebpf::load::load_ebpf;
 use env::ETH_NAME;
